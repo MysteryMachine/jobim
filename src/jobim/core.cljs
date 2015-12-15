@@ -72,7 +72,7 @@
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
-(defrecord ClojureCode [code]
+(defrecord ClojureCode [code env]
   Slide
   (render-slide [this]
     [:div
@@ -132,4 +132,5 @@
          (reset! show-state (guard new-state slides)))))
     (reagent/render-component
      [render-show-outer slides style]
-     (. js/document (getElementById "jobim")))))
+     (. js/document (getElementById "jobim"))))
+  (vec slides))

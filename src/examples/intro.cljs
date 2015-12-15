@@ -1,18 +1,27 @@
 (ns examples.intro
   (:require [jobim.core :as jobim
              :refer [slide-show default-style ->Title
-                     ->CaptionedPic ->ClojureCode ->Picture]]))
+                     ->CaptionedPic ->ClojureCode ->Picture]
+             :refer-macros [defshow clojure-code]]
+            [cljs.test :refer-macros [deftest is testing run-tests]]))
 
-(slide-show
- default-style
- (->Title
-  "Unit Testing In Clojure"
-  "Built for the Recurse Center by Sal Becker as a demonstration of Jobim")
- (->CaptionedPic
-  "https://i.ytimg.com/vi/84J0UXxxBXQ/maxresdefault.jpg"
-  "I started naming all my libraries after Brazilian things.")
- (->ClojureCode
-  ['(def a (+ 1 2))
-   '(def b (+ 2 3))])
- (->Picture 
-  "http://s.quickmeme.com/img/cc/cc0110d0bd1ee9336c872203f81181344211f9165cf4257fad12dd27a4b7efaf.jpg"))
+(def jobim-image "https://i.ytimg.com/vi/84J0UXxxBXQ/maxresdefault.jpg")
+(def meme-image "http://s.quickmeme.com/img/cc/cc0110d0bd1ee9336c872203f81181344211f9165cf4257fad12dd27a4b7efaf.jpg")
+
+(def code-slide
+  (clojure-code
+   (def a (+ 1 2))
+   (def b (+ a 3))
+   (defn c [d] (+ a b d))
+   (c 10)))
+
+(defshow intro-to-clojure
+  default-style
+  (->Title
+   "Unit Testing In Clojure"
+   "Built for the Recurse Center by Sal Becker as a demonstration of Jobim")
+  (->CaptionedPic
+   jobim-image
+   "I started naming all my libraries after Brazilian things.")
+  code-slide
+  (->Picture meme-image))

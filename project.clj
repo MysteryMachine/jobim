@@ -18,17 +18,14 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
   :cljsbuild {:builds
-              [{:id "dev"
-                :source-paths ["src"]
-                :figwheel {:on-jsload examples.intro/reload}
-                :compiler {:main examples.intro
-                           :asset-path "js/compiled/out"
-                           :output-to "resources/public/js/compiled/jobim.js"
+              [{:id "intro"
+                :source-paths ["src" "test"]
+                :compiler {:output-to "resources/public/js/compiled/jobim.js"
                            :output-dir "resources/public/js/compiled/out"
-                           :source-map-timestamp true}}
-               ;; This next build is an compressed minified build for
-               ;; production. You can build this with:
-               ;; lein cljsbuild once min
+                           :asset-path "js/compiled/out"
+                           :main examples.intro-runner
+                           :source-map true
+                           :cache-analysis true}}
                {:id "min"
                 :source-paths ["src"]
                 :compiler {:output-to "resources/public/js/compiled/jobim.js"

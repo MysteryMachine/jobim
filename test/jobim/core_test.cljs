@@ -1,12 +1,15 @@
 (ns jobim.core-test ^:figwheel-always
-  (:require [jobim.core :as jobim]
+  (:require [jobim.core :as jobim :refer-macros [clojure-code]]
             [cljs.test :refer-macros [deftest is testing run-tests]]))
+
+(def a 1)
+(def b 2)
 
 (def slides
   {:title (jobim/->Title "Test" "Mock")
    :picture (jobim/->Picture "img.png")
    :captioned (jobim/->CaptionedPic "img.png" "this is caption")
-   :clojure-code (jobim/->ClojureCode ['(+ a 1) "(+ b 2)"])})
+   :clojure-code (jobim/clojure-code (+ a 1) (+ b 2)) })
 
 (def show
   [(:title slides)
@@ -107,3 +110,6 @@
             [:div
              {:style jobim/default-style}
              (jobim/render-slide (:picture slides))]]))))
+
+#_(deftest indent-clj-test
+  (is (= (jobim/indent-clj '(+ 1 2) "(+ 1 2)"))))
