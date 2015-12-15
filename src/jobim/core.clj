@@ -37,3 +37,6 @@
 
 (defmacro defshow [name style & slides]
   `(def ~name (slide-show ~style ~@slides)))
+
+(defmacro defclj [name & code]
+  `(def ~name (clojure-code ~@code)))
