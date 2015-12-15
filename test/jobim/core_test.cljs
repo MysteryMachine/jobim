@@ -51,10 +51,10 @@
              [:div
               {:style (merge jobim/flexbox {:flex-direction "column"})}
               (seq
-               [[:div
+               [[:div {:key 0}
                  [:pre
                   [:code "(+ a 1)"]]]
-                [:div
+                [:div {:key 1}
                  [:pre
                   [:code "(+ b 2)"]]]])]))))
   (testing "next-slide"

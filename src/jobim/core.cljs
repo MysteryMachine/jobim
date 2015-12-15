@@ -77,8 +77,8 @@
   (render-slide [this]
     [:div
      {:style (merge flexbox {:flex-direction "column"})}
-     (for [line code]
-       [:div
+     (for [[line key] (zipmap code (range (count code)))]
+       [:div {:key key}
         [:pre
          [:code (str line)]]])])
   (next-slide [this state] (std-next this state))
