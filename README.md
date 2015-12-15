@@ -15,25 +15,36 @@ Here is what an example presentation can look like.
 (ns examples.intro
   (:require [jobim.core :as jobim
              :refer [slide-show default-style ->Title
-                     ->CaptionedPic ->ClojureCode ->Picture]]))
+                     ->CaptionedPic ->ClojureCode ->Picture]
+             :refer-macros [defshow clojure-code]]
+            [cljs.test :refer-macros [deftest is testing run-tests]]))
 
-(slide-show
- default-style
- (->Title
-  "Unit Testing In Clojure"
-  "Built for the Recurse Center by Sal Becker as a demonstration of Jobim")
- (->CaptionedPic
+(def code-slide
+  (clojure-code
+   (def a (+ 1 2))
+   (def b (+ a 3))
+   (defn c [d] (+ a b d))
+   (c 10)))
+
+(defshow intro-to-clojure
+  default-style
+  (->Title
+   "Unit Testing In Clojure"
+   "Built for the Recurse Center by Sal Becker as a demonstration of Jobim")
+  (->CaptionedPic
    "jobim.png"
    "I started naming all my libraries after Brazilian things.")
- (->ClojureCode
-  ['(def a (+ 1 2))
-   '(def b (+ 2 3))])
- (->Picture "meme.jpg"))
+  code-slide
+  (->Picture "meme.png"))
 ```
 
 One of the coolest features of `jobim` is that it allows you to include
 Clojure code as a quoted form, allowing you to use ACTUAL code inside
 code examples.
+
+Jobim allows you to write test driven presentations, and to build up certainty that your slides mean what you think they means. Run tests lives, and do live reload, effortlessly!
+
+![jobim live reloading and retesting](https://pbs.twimg.com/media/CWOuIJFUkAIcbY1.png:large)
 
 ## Feature Wishlist
 
