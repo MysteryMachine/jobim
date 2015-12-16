@@ -43,7 +43,7 @@ code examples.
 
 Jobim allows you to write test driven presentations, and to build up certainty that your slides mean what you think they means. Run tests lives, and do live reload, effortlessly!
 
-![jobim live reloading and retesting](https://pbs.twimg.com/media/CWOuIJFUkAIcbY1.png:large)
+![jobim live reloading and retesting](http://i.imgur.com/YOqxCbTh.png)
 
 ## Feature Wishlist
 
