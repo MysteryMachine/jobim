@@ -49,7 +49,7 @@
     (testing "ClojureCode"
       (is (= (jobim/render-slide (:clojure-code slides))
              [:div
-              {:style (merge jobim/flexbox {:flex-direction "column"})}
+              {:style {:text-align "left"}}
               (seq
                [[:div {:key 0}
                  [:pre

@@ -32,8 +32,8 @@
         (assoc :length (inc id))
         (assoc key val))))
 
-(defmacro clojure-code [& code]
-  `(->ClojureCode '~code ~(reduce transform-code {:length 0} code)))
+(defmacro clojure-code [width & code]
+  `(->ClojureCode '~code ~(reduce transform-code {:length 0} code) ~width))
 
 (defmacro defshow [name style & slides]
   `(def ~name (slide-show ~style ~@slides)))

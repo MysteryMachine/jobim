@@ -1,6 +1,7 @@
 (ns jobim.core
   (:require [reagent.core :as reagent :refer [atom]]
-            [cljs.core.async :refer [put! chan >! <!]])
+            [cljs.core.async :refer [put! chan >! <!]]
+            [fipp.clojure :refer [pprint]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (defprotocol Slide
@@ -72,15 +73,21 @@
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
-(defrecord ClojureCode [code env]
+(defrecord ClojureCode [code env pprint-width]
   Slide
   (render-slide [this]
     [:div
-     {:style (merge flexbox {:flex-direction "column"})}
+     {:style {:text-align "left"}}
      (for [[line key] (zipmap code (range (count code)))]
-       [:div {:key key}
-        [:pre
-         [:code (str line)]]])])
+       [:div
+        {:key key
+         :dangerouslySetInnerHTML
+         #js{:__html (str "<pre><code>"
+                          (.-value (js/hljs.highlight
+                                    "clj"
+                                    (with-out-str
+                                      (pprint line {:width pprint-width}))))
+                          "</code></pre>")}}])])
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
@@ -116,6 +123,8 @@
       (>= i n) (assoc-in state [:page] (dec n))
       (< i 0) (assoc-in state [:page] 0)
       :else state)))
+
+(defn highlight-code [] (js/hljs.initHighlighting))
 
 (defn render-show-outer [slides style]
   (render-show slides @show-state style))

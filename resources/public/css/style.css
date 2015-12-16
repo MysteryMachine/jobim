@@ -1,6 +1,6 @@
 /* some style */
 
-body{
+body, pre{
     padding: 0px;
     margin: 0px;
 }

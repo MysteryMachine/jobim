@@ -8,7 +8,8 @@
                  [org.clojure/clojurescript "1.7.170"]
                  [org.clojure/core.async "0.2.374"]
                  [com.cemerick/piggieback "0.2.1"]
-                 [reagent "0.5.0"]]
+                 [reagent "0.5.0"]
+                 [fipp "0.6.3"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-figwheel "0.5.0-1"]]
