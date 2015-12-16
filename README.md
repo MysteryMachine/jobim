@@ -19,12 +19,11 @@ Here is what an example presentation can look like.
              :refer-macros [defshow clojure-code]]
             [cljs.test :refer-macros [deftest is testing run-tests]]))
 
-(def code-slide
-  (clojure-code
-   (def a (+ 1 2))
-   (def b (+ a 3))
-   (defn c [d] (+ a b d))
-   (c 10)))
+(defclj code-slide 40
+  (def a (+ 1 2))
+  (def b (+ a 3))
+  (defn c [d] (+ a b d))
+  (c 10))
 
 (defshow intro-to-clojure
   default-style
@@ -48,7 +47,9 @@ Jobim allows you to write test driven presentations, and to build up certainty t
 
 ## Feature Wishlist
 
-* Highlighting of Clojure expressions
+* Package management stuff
+* A psuedocode macro for stuff you're not testing
+* A lein plugin for blazing fast development
 * A built in REPL
 * Features for more languages
 
