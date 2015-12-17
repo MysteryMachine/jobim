@@ -29,7 +29,6 @@
 (def h2-style
   {:font-weight "100"
    :font-size "1em"})
-
 (defn center [pct elem]
   [:div {:style {:width (str pct "%")
                  :margin-left "auto"
@@ -40,13 +39,23 @@
   (render-slide [this]
     [:div
      {:style title-style}
-     [:h1
-      {:style h1-style}
-      title]
+     (center 80
+       [:h1
+        {:style h1-style}
+        title])
      (center 66.6
       [:h2
         {:style h2-style}
        subtitle])])
+  (next-slide [this state] (std-next this state))
+  (prev-slide [this state] (std-prev this state)))
+
+(defrecord Text [text]
+  Slide
+  (render-slide [this]
+    [:div {:style title-style} 
+     (center 80
+       [:h1 {:style h1-style} text])])
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
@@ -69,7 +78,10 @@
   (render-slide [this]
     [:div {:style (merge flexbox {:flex-direction "column"})}
      (render-slide (->Picture url))
-     [:div {:style {:padding-top "50px"}} caption]])
+     (center 80
+       [:div
+        {:style {:padding-top "50px" :text-align "center"}}
+        caption])])
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
@@ -88,6 +100,25 @@
                                     (with-out-str
                                       (pprint line {:width pprint-width}))))
                           "</code></pre>")}}])])
+  (next-slide [this state] (std-next this state))
+  (prev-slide [this state] (std-prev this state)))
+
+(defrecord CustomSlide [html]
+  Slide
+  (render-slide [this] html)
+  (next-slide [this state] (std-next this state))
+  (prev-slide [this state] (std-prev this state)))
+
+(defrecord Code [type code-str]
+  Slide
+  (render-slide [this]
+    [:pre
+     [:code
+      {:class type
+       :dangerouslySetInnerHTML
+       #js{:__html (str "<pre><code>"
+                        (.-value (js/hljs.highlight type code-str))
+                        "</code></pre>")}}]])
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
@@ -124,10 +155,28 @@
       (< i 0) (assoc-in state [:page] 0)
       :else state)))
 
-(defn highlight-code [] (js/hljs.initHighlighting))
-
 (defn render-show-outer [slides style]
   (render-show slides @show-state style))
+
+(defn indent [lv arg]
+  (str
+   (apply str (take lv (repeat "  ")))
+   arg))
+(defn nl [arg] (str arg "\n"))
+
+(defn o> [indent-level]
+  (fn [arg]
+    (if (string? arg)
+      (indent indent-level arg)
+      (map (o> (inc indent-level)) arg))))
+
+(defn code [type & code]
+  (->> code
+       (map (o> 0))
+       (flatten)
+       (map nl)
+       (apply str)
+       (->Code type)))
 
 (defn slide-show [style & slides]
   (let [input (chan)]

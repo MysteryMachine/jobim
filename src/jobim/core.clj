@@ -40,3 +40,6 @@
 
 (defmacro defclj [name & code]
   `(def ~name (clojure-code ~@code)))
+
+(defmacro pseudo-clj [width & code]
+  `(->ClojureCode '~code {:length 0} ~width))

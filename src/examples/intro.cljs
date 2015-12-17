@@ -1,30 +1,88 @@
 (ns examples.intro
   (:require [jobim.core :as jobim
              :refer [slide-show default-style ->Title
-                     ->CaptionedPic ->ClojureCode ->Picture]
-             :refer-macros [defshow defclj]]
+                     ->CaptionedPic ->ClojureCode ->Picture
+                     ->Code ->Text code]
+             :refer-macros [defshow defclj pseudo-clj]]
             [cljs.test :refer-macros [deftest is testing run-tests]]))
-
-(def jobim-image "https://i.ytimg.com/vi/84J0UXxxBXQ/maxresdefault.jpg")
-(def meme-image "http://s.quickmeme.com/img/cc/cc0110d0bd1ee9336c872203f81181344211f9165cf4257fad12dd27a4b7efaf.jpg")
 
 (defclj code-slide 40
   (def a (+ 1 2))
   (def b (+ a 3))
-  (defn c [d] (+ a b d))
-  (defn e [n]
-    (if (= n :do-it)
+  (defn c [d] (+ d b a))
+  (defn d [e]
+    (if (= e :do-it)
       (c 10)
-      (c 15))) 
-  (e :do-it))
+      (c 15)))
+  (d :do-it))
 
 (defshow intro-to-clojure
   default-style
   (->Title
-   "Unit Testing In Clojure"
-   "Built for the Recurse Center by Sal Becker as a demonstration of Jobim")
+   "Jobim: Testable and Extensible CLJS Presentations"
+   "Made by Sal Becker for the Fall 2 batch of the Recurse Center")
+  (->Text "Have you ever...")
+  (->Text "Included code snippets in slide shows?")
+  (->Text "Wrote tests for code in your slides?")
+  (->Text "Written incorrect code into a slideshow?")
+  (->Picture "https://vierbergenlars.files.wordpress.com/2013/08/40434677.jpg?w=594")
   (->CaptionedPic
-   jobim-image
-   "I started naming all my libraries after Brazilian things.")
+   "https://i.ytimg.com/vi/84J0UXxxBXQ/maxresdefault.jpg"
+   "Brazilian Bossa Nova musician, Tom Jobim, has nothing to do with unit tests.")
+  (->Text "...but he was really good on stage, so maybe the name fits.")
+  (->Picture "http://cdn.meme.am/instances/500x/55480046.jpg")
+  (->Text "The Basics")
+  (pseudo-clj 80
+    (defshow show-name
+      slide-style
+      (->Title "title" "subtitle")
+      (->Text "text")
+      (->Picture "url")
+      (->CaptionedPic "url" "text")))
+  (->Text "Most of our technical slide shows are just plain strings or files!")
+  (->Text "What if we could write techincal presentations in actual testable code!")
   code-slide
-  (->Picture meme-image))
+  (pseudo-clj 80
+   (defclj code-slide 40
+     (def a (+ 1 2))
+     (def b (+ a 3))
+     (defn c [d] (+ d b a))
+     (defn d [e]
+       (if (= e :do-it)
+         (c 10)
+         (c 15)))
+     (d :do-it)))
+  (pseudo-clj 80
+   (deftest code-slide-test
+     (is (= (get (:env show/code-slide) :a) 3))
+     (is (= (get (:env show/code-slide) :b) 6))
+     (is (= ((get (:env show/code-slide) :c) 1) 10))
+     (is (= (get (:env show/code-slide) 4) 19))))
+  (->Text "Tests run live in a figwheel environment while you develop.")
+  (->Text "The Slide Abstraction: How to Extend Jobim")
+  (pseudo-clj 80
+   (defprotocol Slide
+     (render-slide [this])
+     (next-slide   [this state])
+     (prev-slide   [this state])))
+  (->Text "What about other languages?")
+  (code
+   "javascript"
+   "function test(){"
+   ["console.log(\"This is a JS function\");"]
+   "};")
+  (pseudo-clj 40
+   (code
+    "javascript"
+    "function test(){"
+    ["console.log(\"This is a JS function\");"]
+    "};"))
+  (code
+   "python"
+   "def test():"
+   ["print \"Jobim can do Python too!\""])
+  (pseudo-clj 40
+   (code
+    "python"
+    "def test():"
+    ["print \"Jobim can do Python too!\""])))
