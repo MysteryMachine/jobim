@@ -38,7 +38,7 @@ Here is what an example presentation can look like.
 ```
 
 One of the coolest features of `jobim` is that it allows you to include
-Clojure code as a quoted form, allowing you to use ACTUAL code inside
+Clojure code inside our macros, allowing you to use ACTUAL code inside
 code examples.
 
 Jobim allows you to write test driven presentations, and to build up certainty that your slides mean what you think they means. Run tests lives, and do live reload, effortlessly!
@@ -48,7 +48,6 @@ Jobim allows you to write test driven presentations, and to build up certainty t
 ## Feature Wishlist
 
 * Package management stuff
-* A psuedocode macro for stuff you're not testing
 * A lein plugin for blazing fast development
 * A built in REPL
 * Features for more languages
@@ -60,7 +59,8 @@ checkout the examples directory to see running code. A presentation should
 be buildable as long as you copy all HTML, CSS, and you run cljsbuild on
 some sort of presentation to get it running.
 
-More specific information coming soon.
+More specific information coming soon. This project will recieve more
+attention as I use it more and more.
 
 ## License
 
