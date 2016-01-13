@@ -1,4 +1,4 @@
-(ns tests.runner ^:figwheel-always
+(ns jobim.figwheel.runner ^:figwheel-always
   (:require [cljs.test :as test :include-macros true :refer [report]]
             [figwheel.client :as fw]))
 

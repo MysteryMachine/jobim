@@ -1,4 +1,4 @@
-(ns examples.intro
+(ns intro.core
   (:require [jobim.core :as jobim
              :refer [slide-show default-style ->Title
                      ->CaptionedPic ->ClojureCode ->Picture
@@ -7,7 +7,7 @@
             [cljs.test :refer-macros [deftest is testing run-tests]]))
 
 (defclj code-slide 40
-  (def a (+ 1 4))
+  (def a (+ 1 2))
   (def b (+ a 3))
   (defn c [d] (+ d b a))
   (defn d [e]
@@ -86,4 +86,3 @@
     "python"
     "def test():"
     ["print \"Jobim can do Python too!\""])))
- 

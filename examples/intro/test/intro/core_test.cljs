@@ -1,6 +1,6 @@
-(ns examples.intro-test
+(ns intro.core-test
   (:require [cljs.test :refer-macros [deftest is]]
-            [examples.intro :as show]))
+            [intro.core :as show]))
 
 (deftest code-slide-test
   (is (= (get (:env show/code-slide) :a) 3))
