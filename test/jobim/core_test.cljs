@@ -9,7 +9,12 @@
   {:title (jobim/->Title "Test" "Mock")
    :picture (jobim/->Picture "img.png")
    :captioned (jobim/->CaptionedPic "img.png" "this is caption")
-   :clojure-code (jobim/clojure-code (+ a 1) (+ b 2)) })
+   :clojure-code (jobim/clojure-code (+ 1 2)
+                                     (def a (+ 1 2 3))
+                                     (defn b [c d] (+ a c d))
+                                     (b a a)
+                                     (defn d [e f] (b a (- e f)))
+                                     (d 10 5))})
 
 (def show
   [(:title slides)
@@ -34,7 +39,7 @@
       (is (= (jobim/render-slide (:title slides))
              [:div
               {:style jobim/title-style}
-              [:h1 {:style jobim/h1-style} "Test"]
+              (jobim/center 80 [:h1 {:style jobim/h1-style} "Test"])
               (jobim/center 66.6 [:h2 {:style jobim/h2-style} "Mock"])])))
     (testing "Picture"
       (is (= (jobim/render-slide (:picture slides))
@@ -45,18 +50,14 @@
       (is (= (jobim/render-slide (:captioned slides))
              [:div {:style (merge jobim/flexbox {:flex-direction "column"})}
               (jobim/render-slide (:picture slides))
-              [:div {:style {:padding-top "50px"}} "this is caption"]])))
-    (testing "ClojureCode"
-      (is (= (jobim/render-slide (:clojure-code slides))
-             [:div
-              {:style {:text-align "left"}}
-              (seq
-               [[:div {:key 0}
-                 [:pre
-                  [:code "(+ a 1)"]]]
-                [:div {:key 1}
-                 [:pre
-                  [:code "(+ b 2)"]]]])]))))
+              (jobim/center 80
+                            [:div {:style
+                                   {:padding-top "50px" :text-align "center"}}
+                             "this is caption"])])))
+    (testing "clojure-code"
+      (is (= (first (jobim/render-slide (:clojure-code slides))) :div))
+      (is (= (second (jobim/render-slide (:clojure-code slides)))
+             {:style {:text-align "left"}}))))
   (testing "next-slide"
     (testing "Title"
       (is (= (jobim/next-slide (:title slides) {:page 1}) {:page 2})))

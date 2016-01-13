@@ -53,7 +53,7 @@
 (defrecord Text [text]
   Slide
   (render-slide [this]
-    [:div {:style title-style} 
+    [:div {:style title-style}
      (center 80
        [:h1 {:style h1-style} text])])
   (next-slide [this state] (std-next this state))
