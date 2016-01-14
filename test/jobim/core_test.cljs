@@ -6,9 +6,6 @@
 ;; If you'd like to ping me and show me a good working example, I'd be very
 ;; thankful!
 
-(def a 1)
-(def b 2)
-
 (def slides
   {:title (jobim/->Title "Test" "Mock")
    :text (jobim/->Text "hello world")
