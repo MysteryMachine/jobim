@@ -156,25 +156,30 @@
       :else state)))
 
 (defn render-show-outer [slides style]
+  "This function isolates render-show from having to deal with
+statefulness, thus rendering it more testable."
   (render-show slides @show-state style))
 
 (defn indent [lv arg]
   (str
    (apply str (take lv (repeat "  ")))
    arg))
-(defn nl [arg] (str arg "\n"))
 
-(defn o> [indent-level]
+(defn indent* [indent-level]
   (fn [arg]
     (if (string? arg)
       (indent indent-level arg)
-      (map (o> (inc indent-level)) arg))))
+      (map (indent* (inc indent-level)) arg))))
+
+(defn nl [arg] (str arg "\n"))
+(defn nl* [arg]
+  (conj (vec (map nl (butlast arg))) (last arg)))
 
 (defn code [type & code]
   (->> code
-       (map (o> 0))
+       (map (indent* 0))
        (flatten)
-       (map nl)
+       (nl*)
        (apply str)
        (->Code type)))
 

@@ -2,19 +2,21 @@
   (:require [jobim.core :as jobim :refer-macros [clojure-code]]
             [cljs.test :refer-macros [deftest is testing run-tests]]))
 
+;; Note: I haven't figured out how to correctly use fixtures in cljs tests
+;; If you'd like to ping me and show me a good working example, I'd be very
+;; thankful!
+
 (def a 1)
 (def b 2)
 
 (def slides
   {:title (jobim/->Title "Test" "Mock")
+   :text (jobim/->Text "hello world")
    :picture (jobim/->Picture "img.png")
    :captioned (jobim/->CaptionedPic "img.png" "this is caption")
-   :clojure-code (jobim/clojure-code (+ 1 2)
-                                     (def a (+ 1 2 3))
-                                     (defn b [c d] (+ a c d))
-                                     (b a a)
-                                     (defn d [e f] (b a (- e f)))
-                                     (d 10 5))})
+   :clojure-code (jobim/->ClojureCode '((+ 1 2) (+ 3 4)) {} 40)
+   :custom-slide (jobim/->CustomSlide [:div])
+   :code (jobim/->Code "js" "function(){ return 1; }")})
 
 (def show
   [(:title slides)
@@ -41,6 +43,10 @@
               {:style jobim/title-style}
               (jobim/center 80 [:h1 {:style jobim/h1-style} "Test"])
               (jobim/center 66.6 [:h2 {:style jobim/h2-style} "Mock"])])))
+    (testing "Text"
+      (is (= (jobim/render-slide (:text slides))
+             [:div {:style jobim/title-style}
+              (jobim/center 80 [:h1 {:style jobim/h1-style} "hello world"])])))
     (testing "Picture"
       (is (= (jobim/render-slide (:picture slides))
              [:div
@@ -54,10 +60,17 @@
                             [:div {:style
                                    {:padding-top "50px" :text-align "center"}}
                              "this is caption"])])))
-    (testing "clojure-code"
+    (testing "ClojureCode"
       (is (= (first (jobim/render-slide (:clojure-code slides))) :div))
       (is (= (second (jobim/render-slide (:clojure-code slides)))
-             {:style {:text-align "left"}}))))
+             {:style {:text-align "left"}}))
+      (is (= (count (nth (jobim/render-slide (:clojure-code slides)) 2)) 2)))
+    (testing "CustomSlide"
+      (is (= (jobim/render-slide (:custom-slide slides)) [:div])))
+    (testing "Code"
+      (is (= (first (jobim/render-slide (:code slides))) :pre))
+      (is (= (-> (jobim/render-slide (:code slides)) second first) :code))
+      (is (= (-> (jobim/render-slide (:code slides)) second second :class) "js"))))
   (testing "next-slide"
     (testing "Title"
       (is (= (jobim/next-slide (:title slides) {:page 1}) {:page 2})))
@@ -66,7 +79,13 @@
     (testing "CaptionedPic"
       (is (= (jobim/next-slide (:captioned slides) {:page 1}) {:page 2})))
     (testing "ClojureCode"
-      (is (= (jobim/next-slide (:clojure-code slides) {:page 1}) {:page 2}))))
+      (is (= (jobim/next-slide (:clojure-code slides) {:page 1}) {:page 2})))
+    (testing "Text"
+      (is (= (jobim/next-slide (:text slides) {:page 1}) {:page 2})))
+    (testing "CustomSlide"
+      (is (= (jobim/next-slide (:custom-slide slides) {:page 1}) {:page 2})))
+    (testing "Code"
+      (is (= (jobim/next-slide (:code slides) {:page 1}) {:page 2}))))
   (testing "prev-slide"
     (testing "Title"
       (is (= (jobim/prev-slide (:title slides) {:page 1}) {:page 0})))
@@ -75,7 +94,13 @@
     (testing "CaptionedPic"
       (is (= (jobim/prev-slide (:captioned slides) {:page 1}) {:page 0})))
     (testing "ClojureCode"
-      (is (= (jobim/prev-slide (:captioned slides) {:page 1}) {:page 0})))))
+      (is (= (jobim/prev-slide (:captioned slides) {:page 1}) {:page 0})))
+    (testing "Text"
+      (is (= (jobim/prev-slide (:text slides) {:page 1}) {:page 0})))
+    (testing "CustomSlide"
+      (is (= (jobim/prev-slide (:custom-slide slides) {:page 1}) {:page 0})))
+    (testing "Code"
+      (is (= (jobim/prev-slide (:code slides) {:page 1}) {:page 0})))))
 
 (deftest curr-slide
   (is (= (jobim/curr-slide [:a :b :c] {:page 0}) :a))
@@ -112,5 +137,96 @@
              {:style jobim/default-style}
              (jobim/render-slide (:picture slides))]]))))
 
-#_(deftest indent-clj-test
-  (is (= (jobim/indent-clj '(+ 1 2) "(+ 1 2)"))))
+(deftest indent-test
+  (is (= (jobim/indent 0 "1 + 2") "1 + 2"))
+  (is (= (jobim/indent 1 "1 + 2") "  1 + 2"))
+  (is (= (jobim/indent 2 "1 + 2") "    1 + 2")))
+
+(deftest indent*-test
+  (is (= ((jobim/indent* 0) "1 + 2") "1 + 2"))
+  (is (= ((jobim/indent* 1) "1 + 2") "  1 + 2"))
+  (is (= ((jobim/indent* 2) "1 + 2") "    1 + 2"))
+  (is (= ((jobim/indent* -1) ["1 + 2"]) ["1 + 2"]))
+  (is (= ((jobim/indent* 0) ["1 + 2"]) ["  1 + 2"]))
+  (is (= ((jobim/indent* 1) ["1 + 2"]) ["    1 + 2"]))
+  (is (= ((jobim/indent* -1) ["add():" ["1 + 2"]])  ["add():" ["  1 + 2"]]))
+  (is (= ((jobim/indent* 0)  ["add():" ["1 + 2"]])  ["  add():" ["    1 + 2"]]))
+  (is (= ((jobim/indent* 1)  ["add():" ["1 + 2"]])  ["    add():" ["      1 + 2"]])))
+
+(deftest nl
+  (is (= (jobim/nl "") "\n"))
+  (is (= (jobim/nl "1 + 2") "1 + 2\n")))
+
+(deftest nl*
+  (is (= (jobim/nl* ["1 + 2" "3 + 4"]) ["1 + 2\n" "3 + 4"]))
+  (is (= (jobim/nl* ["3 + 4"]) ["3 + 4"])))
+
+(def js-code
+  (jobim/code "js"
+    "function e(a, b){"
+    ["var c = a + 1;"
+     "var d = b + 2;"
+     "return c * d;"]
+    "};"
+    "e(10, 20);"))
+
+(def js-code-expect
+  (jobim/->Code "js"
+    (str "function e(a, b){\n"
+         "  var c = a + 1;\n"
+         "  var d = b + 2;\n"
+         "  return c * d;\n"
+         "};\n"
+         "e(10, 20);")))
+
+(def py-code
+  (jobim/code "py"
+    "def e(a, b):"
+    ["c = a + 1"
+     "d = b + 2"
+     "return c * d"]
+    "e(10, 20)"))
+
+(def py-code-expect
+  (jobim/->Code "py"
+                (str "def e(a, b):\n"
+                     "  c = a + 1\n"
+                     "  d = b + 2\n"
+                     "  return c * d\n"
+                     "e(10, 20)")))
+
+(deftest code-test
+  (testing "js-code"
+    (is (= js-code js-code-expect)))
+  (testing "py-code"
+    (is (= py-code py-code-expect))))
+
+(def clj
+  (jobim/clojure-code 40
+   (+ 1 2)
+   (def a (+ 1 2 3))
+   (defn b [c d] (+ a c d))
+   (b a a)
+   (defn d [e f] (b a (- e f)))
+   (d 10 5)))
+
+(def clj-env (:env clj))
+
+(deftest clj-test
+  (testing "env"
+    (is (= (get clj-env 0) 3))
+    (is (= (get clj-env 3) 18))
+    (is (= (get clj-env 5) 17))
+    (is (not (nil? (get clj-env :a))))
+    (is (not (nil? (get clj-env :b))))
+    (is (not (nil? (get clj-env :d)))))
+  (testing "code"
+    (is (= (:code clj)
+           '((+ 1 2)
+             (def a (+ 1 2 3))
+             (defn b [c d] (+ a c d))
+             (b a a)
+             (defn d [e f] (b a (- e f)))
+             (d 10 5)))))
+  (testing "pprint-width"
+    (is (= (:pprint-width clj 40)))))
