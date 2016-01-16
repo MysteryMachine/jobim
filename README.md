@@ -108,15 +108,15 @@ For your convinience, you can use `defclj` as a replacement for
 
 ```clojure
 (defclj code-slide 40
-  (+ 1 2)              ;; The result of the 0th expression is stored in the key 0
+  (+ 1 2)              ;; The result of the 0th expression is stored in the key :%0
   (def b 3)            ;; This expression has a name, so it is stored under :b
   (defn a [c] (+ c 1)) ;; This expression is stored in the key :a
-  (a 10))              ;; This expression is stored in the key 3
+  (a 10))              ;; This expression is stored in the key :%3
 
-(get (:env code-slide) 0)       ;; 3
+(get (:env code-slide) :%0)       ;; 3
 (get (:env code-slide) :b)      ;; 3
 ((get (:env code-slide) :a) 5)  ;; 6
-(get (:env code-slide) 3)       ;; 11
+(get (:env code-slide) :%3)       ;; 11
 ```
 
 This allows you to write tests against your presentation. To see an example of this,

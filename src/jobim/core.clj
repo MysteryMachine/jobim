@@ -1,39 +1,42 @@
 (ns jobim.core)
 
-(defn def-form? [[a & _]] (= a 'def))
-(defn defn-form? [[a & _]] (= a 'defn))
+(def end :JOBIM_SPECIAL_END)
+
+(defn def-form? [form] (= (first form) 'def))
+(defn defn-form? [form] (= (first form) 'defn))
 
 (defn def-form [[_ name & code]]
-  `[~(keyword name) ~@code])
+  `[~name ~@code])
 
 (defn defn-form [[_ name args & code]]
-  `[~(keyword name) (fn ~name ~args ~@code)])
+  `[~name (fn ~name ~args ~@code)])
 
-(defn apply-env [env expr]
+(defn nameless-form [length code]
+  `[~(symbol (str "%" length)) ~code])
+
+(defn form [length code]
   (cond
-    (symbol? expr) (let [key (keyword expr)]
-                     (if (contains? env key)
-                       (key env)
-                       expr))
-    (seq? expr) (map #(apply-env env %) expr)
-    :else expr))
+    (not (seq? code)) (nameless-form length code)
+    (def-form? code)  (def-form code)
+    (defn-form? code) (defn-form code)
+    :else (nameless-form length code)))
 
-(defn transform-code [code-map snippet]
-  (let [id (:length code-map)
-        env-snippet (apply-env code-map snippet)
-        [key val] (cond
-                    (not (seq snippet)) [id env-snippet]
-                    (< (count snippet) 3) [id env-snippet]
-                    (def-form?  env-snippet) (def-form  env-snippet)
-                    (< (count snippet) 4) [id env-snippet]
-                    (defn-form? env-snippet) (defn-form env-snippet)
-                    :else [id env-snippet])]
-    (-> code-map
-        (assoc :length (inc id))
-        (assoc key val))))
+(defn expand-to-form [{:keys [length forms] :as env} code]
+  (-> env
+      (assoc-in [:forms] (conj forms (form length code)))
+      (update-in [:length] inc)))
+
+(defn key-pair [[sym & _]] [(keyword sym) sym])
+
+(defn build-forms [code] (:forms (reduce expand-to-form {:length 0 :forms []} code)))
+
+(defn transform-code [code]
+  (let [forms (build-forms code)]
+    `(let ~(vec (reduce concat forms))
+       ~(apply hash-map (reduce concat (map key-pair forms))))))
 
 (defmacro clojure-code [width & code]
-  `(->ClojureCode '~code ~(reduce transform-code {:length 0} code) ~width))
+  `(->ClojureCode '~code ~(transform-code code) ~width))
 
 (defmacro defshow [name style & slides]
   `(def ~name (slide-show ~style ~@slides)))

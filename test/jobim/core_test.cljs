@@ -205,25 +205,45 @@
    (defn b [c d] (+ a c d))
    (b a a)
    (defn d [e f] (b a (- e f)))
-   (d 10 5)))
+   (d 10 5)
+   (defn n [b d] (+ b d))
+   (n 10 20)
+   1
+   :a
+   "b"
+   (def atm (atom 0))
+   @atm
+   (swap! atm inc)
+   @atm))
 
 (def clj-env (:env clj))
 
+(def simple-clj
+  (jobim/clojure-code 40
+   (+ 1 2)
+   (def a (+ 1 2 3))
+   (defn b [c d] (+ a c d))))
+
 (deftest clj-test
   (testing "env"
-    (is (= (get clj-env 0) 3))
-    (is (= (get clj-env 3) 18))
-    (is (= (get clj-env 5) 17))
+    (is (= (get clj-env :%0) 3))
+    (is (= (get clj-env :%3) 18))
+    (is (= (get clj-env :%5) 17))
+    (is (= (get clj-env :%7) 30))
+    (is (= (get clj-env :%8) 1))
+    (is (= (get clj-env :%9) :a))
+    (is (= (get clj-env :%10) "b"))
+    (is (= (get clj-env :%12) 0))
+    (is (= (get clj-env :%14) 1))
+    (is (= @(get clj-env :atm) 1))
     (is (not (nil? (get clj-env :a))))
     (is (not (nil? (get clj-env :b))))
-    (is (not (nil? (get clj-env :d)))))
+    (is (not (nil? (get clj-env :d))))
+    (is (not (nil? (get clj-env :n)))))
   (testing "code"
-    (is (= (:code clj)
+    (is (= (:code simple-clj)
            '((+ 1 2)
              (def a (+ 1 2 3))
-             (defn b [c d] (+ a c d))
-             (b a a)
-             (defn d [e f] (b a (- e f)))
-             (d 10 5)))))
+             (defn b [c d] (+ a c d))))))
   (testing "pprint-width"
     (is (= (:pprint-width clj 40)))))
