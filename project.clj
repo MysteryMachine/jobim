@@ -1,4 +1,4 @@
-(defproject jobim "0.1.0-SNAPSHOT"
+(defproject jobim "1.0.0"
   :description "Presentations in cljs!"
   :url "https://github.com/MysteryMachine/jobim"
   :license {:name "Eclipse Public License"
@@ -9,7 +9,8 @@
                  [org.clojure/core.async "0.2.374"]
                  [com.cemerick/piggieback "0.2.1"]
                  [reagent "0.5.0"]
-                 [fipp "0.6.4"]]
+                 [fipp "0.6.4"]
+                 [jobim-figwheel "0.1.0"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-figwheel "0.5.0-1"]]
@@ -19,23 +20,8 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
   :cljsbuild {:builds
-              [{:id "intro"
-                :source-paths ["src" "plugins/jobim-figwheel/src" "examples/intro/src" "examples/intro/test"]
-                :figwheel true
-                :compiler {:output-to "resources/public/js/compiled/jobim.js"
-                           :output-dir "resources/public/js/compiled/out"
-                           :asset-path "js/compiled/out"
-                           :main intro.core-test
-                           :source-map true
-                           :cache-analysis true}}
-               {:id "min"
-                :source-paths ["src"]
-                :compiler {:output-to "resources/public/js/compiled/jobim.js"
-                           :main examples.intro
-                           :optimizations :advanced
-                           :pretty-print false}}
-               {:id "test"
-                :source-paths ["src" "test" "plugins/jobim-figwheel/src"]
+              [{:id "test"
+                :source-paths ["src" "test"]
                 :figwheel true
                 :compiler {:output-to "resources/public/js/compiled/test/test.js"
                            :output-dir "resources/public/js/compiled/test/out"
