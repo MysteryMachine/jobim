@@ -9,13 +9,10 @@ for code snippets written in other languages.
 
 ## Getting Started
 
-I'm almost finished releasing version 1.0 of this library. Once I do,
-I will provide a command along the lines of `lein jobim` to create a
-project with good defaults. Expect this soon.
+I'm almost finished releasing version 1.0 of this library. A lein template is coming
+really soon.
 
-If you're itching to use it now, clone the repository, and examine
-both the example project provided, and the `project.clj` file. To
-run the example, call `lein figwheel intro` from your command line.
+If you're itching to use it now, check out the examples below.
 
 `jobim` requires that the html file in which you are including the generated Javascript
 file has an element named jobim. It also requires that you include some very basic
@@ -30,7 +27,14 @@ body, pre{
 
 Finally, it requires that you include [highlight.js](highlightjs.org).
 You should include a tag for a stylesheet, and for the Javascript. Check
-`index.html` in the project for an example.
+one of the example projects below for a more specific example.
+
+`jobim` uses a bit of code by Bruce Hauman to provide some nice testing
+utility. If you'd like to use it yourself, check out [jobim-figwheel](https://github.com/MysteryMachine/jobim-figwheel).
+If you're using the lein template, this is included by default.
+
+* [jobim-intro](https://github.com/MysteryMachine/jobim-intro)
+* Got another example? Let me know!
 
 ## Usage
 
