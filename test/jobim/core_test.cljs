@@ -1,6 +1,7 @@
 (ns jobim.core-test ^:figwheel-always
   (:require [jobim.core :as jobim :refer-macros [clojure-code]]
-            [cljs.test :refer-macros [deftest is testing run-tests]]))
+            [cljs.test :refer-macros [deftest is testing run-tests]]
+						[jobim.figwheel.helper]))
 
 ;; Note: I haven't figured out how to correctly use fixtures in cljs tests
 ;; If you'd like to ping me and show me a good working example, I'd be very
@@ -247,3 +248,5 @@
              (defn b [c d] (+ a c d))))))
   (testing "pprint-width"
     (is (= (:pprint-width clj 40)))))
+
+(run-tests)

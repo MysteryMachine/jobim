@@ -21,10 +21,11 @@
   :cljsbuild {:builds
               [{:id "intro"
                 :source-paths ["src" "plugins/jobim-figwheel/src" "examples/intro/src" "examples/intro/test"]
+                :figwheel true
                 :compiler {:output-to "resources/public/js/compiled/jobim.js"
                            :output-dir "resources/public/js/compiled/out"
                            :asset-path "js/compiled/out"
-                           :main intro.runner
+                           :main intro.core-test
                            :source-map true
                            :cache-analysis true}}
                {:id "min"
@@ -35,10 +36,11 @@
                            :pretty-print false}}
                {:id "test"
                 :source-paths ["src" "test" "plugins/jobim-figwheel/src"]
+                :figwheel true
                 :compiler {:output-to "resources/public/js/compiled/test/test.js"
                            :output-dir "resources/public/js/compiled/test/out"
                            :asset-path "js/compiled/test/out"
-                           :main jobim.runner
+                           :main jobim.core-test
                            :source-map true
                            :cache-analysis true}}]}
 
