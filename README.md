@@ -1,5 +1,7 @@
 # jobim
 
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.mysterysal/jobim.svg)](https://clojars.org/org.clojars.mysterysal/jobim)
+
 `jobim` is a ClojureScript library aimed allowing ClojureScript developers to rapidly
 create slideshows and presentations that compile down to Javascript, and can be easily
 hosted on a persons website. `jobim` takes advantage of ClojureScript's
