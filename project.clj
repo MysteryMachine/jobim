@@ -1,4 +1,4 @@
-(defproject jobim "1.0.0"
+(defproject org.clojars.mysterysal/jobim "1.0.0"
   :description "Presentations in cljs!"
   :url "https://github.com/MysteryMachine/jobim"
   :license {:name "Eclipse Public License"
@@ -10,7 +10,7 @@
                  [com.cemerick/piggieback "0.2.1"]
                  [reagent "0.5.0"]
                  [fipp "0.6.4"]
-                 [jobim-figwheel "0.1.0"]]
+                 [org.clojars.mysterysal/jobim-figwheel "0.1.0"]]
 
   :plugins [[lein-cljsbuild "1.1.1"]
             [lein-figwheel "0.5.0-1"]]
