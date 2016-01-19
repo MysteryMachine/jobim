@@ -11,11 +11,11 @@ for code snippets written in other languages.
 
 ## Getting Started
 
-I'm almost finished releasing version 1.0 of this library. A lein template is coming
-really soon.
+Getting a `jobim` project up and running is as simple as running `lein new jobim-presentation YOURNAMEHERE`.
+To see more detailed instructions on using the template, check out [jobim-template](https://github.com/MysteryMachine/jobim-template).
 
-If you're itching to use it now, check out the examples below.
-
+If you do not wish to use the template, or if you are customizing or debugging, here are some of the things
+required to set up and run a `jobim` presentation.
 `jobim` requires that the html file in which you are including the generated Javascript
 file has an element named jobim. It also requires that you include some very basic
 css on the page.
@@ -80,6 +80,8 @@ the styles, the macro takes any number of slides.
 commonly used slides. The below are the the slides that do not interface
 with code in any way. The only notable one is `->CustomSlide`, which expects
 a Reagent style component, like `[:div [:span "a"] [:button "hi"]]`.
+Note that any field that is just a text field can also take a reagent style
+component, so you can easily make a title a link by doing `[:a {:href "url"} "Title Text"]`
 
 ```clojure
 (->Title title subtitle)
