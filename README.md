@@ -81,7 +81,7 @@ commonly used slides. The below are the the slides that do not interface
 with code in any way. The only notable one is `->CustomSlide`, which expects
 a Reagent style component, like `[:div [:span "a"] [:button "hi"]]`.
 Note that any field that is just a text field can also take a reagent style
-component, so you can easily make a title a link by doing `[:a {:href "url"} "Title Text"]`
+component, so you can easily make a title a link by doing `[:a {:href "url"} "Title Text"]`.
 
 ```clojure
 (->Title title subtitle)
@@ -175,6 +175,12 @@ on how to extend the protocol.
 
 As a development tip, if you are doing any complex state work, and you need to see
 the current state of the slideshow, check the `jobim.core/show-state` atom.
+
+## Upcoming Work
+
+* Improve CSS styles to improve responsiveness.
+* Add some optional URL parsing to allow users to link directly to a slide.
+* Add support for phone gestures, and the up and down buttons.
 
 ## License
 
