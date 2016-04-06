@@ -2,9 +2,11 @@
   (:require [jobim.core :as jobim
              :refer [slide-show default-style ->Title
                      ->CaptionedPic ->ClojureCode ->Picture
-                     ->Code ->Text code]
+                     ->Code ->Text code new-show ->CustomSlide]
              :refer-macros [defshow defclj pseudo-clj]]
             [cljs.test :refer-macros [deftest is testing run-tests]]))
+
+(defonce show-state (new-show))
 
 (defclj code-slide 40
   (def a (+ 1 2))
@@ -17,7 +19,12 @@
   (d :do-it))
 
 (defshow intro-to-clojure
+  show-state
   default-style
+  (->CustomSlide
+   (fn [state]
+     [:div {:style {:color (:color state)}}
+      (:page state)]))
   (->Title
    "Jobim: Testable and Extensible CLJS Presentations"
    "Made by Sal Becker for the Fall 2 batch of the Recurse Center")

@@ -38,11 +38,19 @@
 (defmacro clojure-code [width & code]
   `(->ClojureCode '~code ~(transform-code code) ~width))
 
-(defmacro defshow [name style & slides]
-  `(def ~name (slide-show ~style ~@slides)))
+(defmacro defshow [name state style & slides]
+  `(def ~name (slide-show ~state ~style ~@slides)))
 
 (defmacro defclj [name & code]
   `(def ~name (clojure-code ~@code)))
 
 (defmacro pseudo-clj [width & code]
   `(->ClojureCode '~code {:length 0} ~width))
+
+;; Helpers
+
+(defmacro ->p [& words]
+  `[:p (clojure.string/join " " [~@words])])
+
+(defmacro ->style [style & more]
+  `[:div {:style ~style} ~@more])

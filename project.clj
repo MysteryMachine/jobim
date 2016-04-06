@@ -1,4 +1,4 @@
-(defproject org.clojars.mysterysal/jobim "1.0.0"
+(defproject org.clojars.mysterysal/jobim "1.1.0"
   :description "Presentations in cljs!"
   :url "https://github.com/MysteryMachine/jobim"
   :license {:name "Eclipse Public License"
@@ -26,6 +26,15 @@
                            :output-dir "resources/public/js/compiled/test/out"
                            :asset-path "js/compiled/test/out"
                            :main jobim.core-test
+                           :source-map true
+                           :cache-analysis true}}
+               {:id "dev"
+                :source-paths ["src" "examples/intro/src" "examples/intro/test"]
+                :figwheel true
+                :compiler {:output-to "resources/public/js/compiled/dev/dev.js"
+                           :output-dir "resources/public/js/compiled/dev/out"
+                           :asset-path "js/compiled/dev/out"
+                           :main intro.core-test
                            :source-map true
                            :cache-analysis true}}]}
 

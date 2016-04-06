@@ -5,10 +5,9 @@
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (defprotocol Slide
-  (render-slide [this])
+  (render-slide [this state])
   (next-slide   [this state])
   (prev-slide   [this state]))
-(defonce show-state (atom {:page 0}))
 
 (defn std-next [this state] (update-in state [:page] inc))
 (defn std-prev [this state] (update-in state [:page] dec))
@@ -36,7 +35,7 @@
    elem])
 (defrecord Title [title subtitle]
   Slide
-  (render-slide [this]
+  (render-slide [this state]
     [:div
      {:style title-style}
      (center 80
@@ -52,7 +51,7 @@
 
 (defrecord Text [text]
   Slide
-  (render-slide [this]
+  (render-slide [this state]
     [:div {:style title-style}
      (center 80
        [:h1 {:style h1-style} text])])
@@ -66,7 +65,7 @@
 
 (defrecord Picture [url]
   Slide
-  (render-slide [this]
+  (render-slide [this state]
     [:div
      {:style (merge flexbox {:height "50%" :width "50%"})}
      [:img {:src url :style pic-style}]])
@@ -75,9 +74,9 @@
 
 (defrecord CaptionedPic [url caption]
   Slide
-  (render-slide [this]
+  (render-slide [this state]
     [:div {:style (merge flexbox {:flex-direction "column"})}
-     (render-slide (->Picture url))
+     (render-slide (->Picture url) state)
      (center 80
        [:div
         {:style {:padding-top "50px" :text-align "center"}}
@@ -87,7 +86,7 @@
 
 (defrecord ClojureCode [code env pprint-width]
   Slide
-  (render-slide [this]
+  (render-slide [this state]
     [:div
      {:style {:text-align "left"}}
      (for [[line key] (zipmap code (range (count code)))]
@@ -103,15 +102,15 @@
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
-(defrecord CustomSlide [html]
+(defrecord CustomSlide [component]
   Slide
-  (render-slide [this] html)
+  (render-slide [this state] (component state))
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
 (defrecord Code [type code-str]
   Slide
-  (render-slide [this]
+  (render-slide [this state]
     [:pre
      [:code
       {:class type
@@ -119,6 +118,23 @@
        #js{:__html (str "<pre><code>"
                         (.-value (js/hljs.highlight type code-str))
                         "</code></pre>")}}]])
+  (next-slide [this state] (std-next this state))
+  (prev-slide [this state] (std-prev this state)))
+
+(defn- render-bullet [cand-bullet]
+  (if (sequential? cand-bullet)
+    (into [:ul {:style {:font-size "0.8em"}}] (map render-bullet cand-bullet))
+    [:li cand-bullet]))
+
+(defn render-bullets [bullets]
+  (into [:ul] (map render-bullet bullets)))
+
+(defrecord BulletedList [title bullets]
+  Slide
+  (render-slide [this state]
+    [:div
+     [:h3 {:style {:text-align "center"}} title]
+     (render-bullets bullets)])
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
@@ -134,7 +150,10 @@
    {:style outer-style}
    [:div
     {:style show-style}
-    (render-slide (curr-slide slides state))]])
+    (render-slide (curr-slide slides state) state)]])
+
+(defn render-show-outer [slides state-atom show-style]
+  (render-show slides @state-atom show-style))
 
 (def default-theme
   {:background-color "#222222"
@@ -154,11 +173,6 @@
       (>= i n) (assoc-in state [:page] (dec n))
       (< i 0) (assoc-in state [:page] 0)
       :else state)))
-
-(defn render-show-outer [slides style]
-  "This function isolates render-show from having to deal with
-statefulness, thus rendering it more testable."
-  (render-show slides @show-state style))
 
 (defn indent [lv arg]
   (str
@@ -183,7 +197,7 @@ statefulness, thus rendering it more testable."
        (apply str)
        (->Code type)))
 
-(defn slide-show [style & slides]
+(defn slide-show [show-state style & slides]
   (let [input (chan)]
     (set! js/document.onkeydown
      (fn []
@@ -194,6 +208,8 @@ statefulness, thus rendering it more testable."
                          state)]
          (reset! show-state (guard new-state slides)))))
     (reagent/render-component
-     [render-show-outer slides style]
+     [render-show-outer slides show-state style]
      (. js/document (getElementById "jobim"))))
   (vec slides))
+
+(defn new-show [] (atom {:page 0}))
