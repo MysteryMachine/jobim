@@ -36,16 +36,19 @@
        ~(apply hash-map (reduce concat (map key-pair forms))))))
 
 (defmacro clojure-code [width & code]
-  `(->ClojureCode '~code ~(transform-code code) ~width))
+  `(->ClojureCode '~code ~(transform-code code) ~width nil))
 
 (defmacro defshow [name state style & slides]
   `(def ~name (slide-show ~state ~style ~@slides)))
 
-(defmacro defclj [name & code]
-  `(def ~name (clojure-code ~@code)))
+(defmacro defclj [name width & code]
+  `(def ~name (clojure-code ~width ~@code)))
+
+(defmacro defclj-c [name width comment & code]
+  `(def ~name (->ClojureCode '~code ~(transform-code code) ~width ~comment)))
 
 (defmacro pseudo-clj [width & code]
-  `(->ClojureCode '~code {:length 0} ~width))
+  `(->ClojureCode '~code {:length 0} ~width nil))
 
 ;; Helpers
 

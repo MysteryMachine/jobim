@@ -23,16 +23,18 @@
   {:text-align "center"})
 (def h1-style
   {:font-weight "100"
-   :font-size "2em"
+   :font-size "1.2em"
    :padding-bottom "1em"})
 (def h2-style
   {:font-weight "100"
    :font-size "1em"})
+
 (defn center [pct elem]
   [:div {:style {:width (str pct "%")
                  :margin-left "auto"
                  :margin-right "auto"}}
    elem])
+
 (defrecord Title [title subtitle]
   Slide
   (render-slide [this state]
@@ -44,7 +46,7 @@
         title])
      (center 66.6
       [:h2
-        {:style h2-style}
+       {:style h2-style}
        subtitle])])
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
@@ -84,21 +86,30 @@
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 
-(defrecord ClojureCode [code env pprint-width]
+(defrecord ClojureCode [code env pprint-width comment]
   Slide
   (render-slide [this state]
-    [:div
-     {:style {:text-align "left"}}
-     (for [[line key] (zipmap code (range (count code)))]
-       [:div
-        {:key key
-         :dangerouslySetInnerHTML
-         #js{:__html (str "<pre><code>"
-                          (.-value (js/hljs.highlight
-                                    "clj"
-                                    (with-out-str
-                                      (pprint line {:width pprint-width}))))
-                          "</code></pre>")}}])])
+    [:div (if comment
+           {:style {:margin "2em auto"
+                    :width "75%"}}
+           {})
+     [:div
+      (for [[line key] (zipmap code (range (count code)))]
+        [:div
+         {:key key
+          :dangerouslySetInnerHTML
+          #js{:__html (str "<pre><code>"
+                           (.-value (js/hljs.highlight
+                                     "clj"
+                                     (with-out-str
+                                       (pprint line {:width pprint-width}))))
+                           "</code></pre>")}}])
+      (if comment
+        [:div
+         {:class "comment"
+          :style {:margin-top "2em"}}
+         comment]
+        [:div])]])
   (next-slide [this state] (std-next this state))
   (prev-slide [this state] (std-prev this state)))
 

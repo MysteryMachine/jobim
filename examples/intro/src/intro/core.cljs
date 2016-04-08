@@ -3,7 +3,7 @@
              :refer [slide-show default-style ->Title
                      ->CaptionedPic ->ClojureCode ->Picture
                      ->Code ->Text code new-show ->CustomSlide]
-             :refer-macros [defshow defclj pseudo-clj]]
+             :refer-macros [defshow defclj pseudo-clj defclj-c]]
             [cljs.test :refer-macros [deftest is testing run-tests]]))
 
 (defonce show-state (new-show))
@@ -21,10 +21,7 @@
 (defshow intro-to-clojure
   show-state
   default-style
-  (->CustomSlide
-   (fn [state]
-     [:div {:style {:color (:color state)}}
-      (:page state)]))
+  code-slide
   (->Title
    "Jobim: Testable and Extensible CLJS Presentations"
    "Made by Sal Becker for the Fall 2 batch of the Recurse Center")
