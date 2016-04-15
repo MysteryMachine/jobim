@@ -20,7 +20,7 @@
    :width "100%"})
 
 (def title-style
-  {:text-align "center"})
+  {:text-align "center" :width "100%"})
 (def h1-style
   {:font-weight "100"
    :font-size "1.2em"
@@ -89,21 +89,21 @@
 (defrecord ClojureCode [code env pprint-width comment]
   Slide
   (render-slide [this state]
-    [:div (if comment
-           {:style {:margin "2em auto"
-                    :width "75%"}}
-           {})
-     [:div
-      (for [[line key] (zipmap code (range (count code)))]
-        [:div
-         {:key key
-          :dangerouslySetInnerHTML
-          #js{:__html (str "<pre><code>"
-                           (.-value (js/hljs.highlight
-                                     "clj"
-                                     (with-out-str
-                                       (pprint line {:width pprint-width}))))
-                           "</code></pre>")}}])
+    [:div {:style flexbox}
+     [:div (when comment
+             {:style {:margin "2em auto"
+                      :max-width "80%"}})
+       [:div
+        (for [[line key] (zipmap code (range (count code)))]
+          [:div
+           {:key key
+            :dangerouslySetInnerHTML
+            #js{:__html (str "<pre><code>"
+                             (.-value (js/hljs.highlight
+                                       "clj"
+                                       (with-out-str
+                                         (pprint line {:width pprint-width}))))
+                             "</code></pre>")}}])]
       (if comment
         [:div
          {:class "comment"

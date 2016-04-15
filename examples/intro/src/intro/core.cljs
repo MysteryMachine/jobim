@@ -8,7 +8,19 @@
 
 (defonce show-state (new-show))
 
-(defclj code-slide 40
+(defclj-c code-slide 40
+  "This is a code comment. This is a code comment. This is a code comment. This is a code comment. This is a code comment. HEYY"
+  (def a (+ 1 2))
+  (def b (+ a 3))
+  (defn c [d] (+ d b a))
+  (defn d [e]
+    (if (= e :do-it)
+      (c 10)
+      (c 15)))
+  (d :do-it))
+
+(defclj-c code-slide2 40
+  "This is a code comment. "
   (def a (+ 1 2))
   (def b (+ a 3))
   (defn c [d] (+ d b a))
@@ -22,6 +34,7 @@
   show-state
   default-style
   code-slide
+  code-slide2
   (->Title
    "Jobim: Testable and Extensible CLJS Presentations"
    "Made by Sal Becker for the Fall 2 batch of the Recurse Center")
