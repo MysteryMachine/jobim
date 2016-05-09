@@ -1,215 +1,115 @@
 (ns jobim.core
-  (:require [reagent.core :as reagent :refer [atom]]
-            [cljs.core.async :refer [put! chan >! <!]]
-            [fipp.clojure :refer [pprint]])
-  (:require-macros [cljs.core.async.macros :refer [go-loop]]))
+  "These functions are almost all you need to use Jobim to its
+   fullest potential. While reading this document, it is important
+   to note a few conventions utilized within.
 
-(defprotocol Slide
-  (render-slide [this state])
-  (next-slide   [this state])
-  (prev-slide   [this state]))
+   <hiccup>: Whenever a function is said to take hiccup, this means
+   it can take either a string, or a hiccup style html data
+   structure. Jobim allows you to fully customize your text with
+   additional markup at any time.
 
-(defn std-next [this state] (update-in state [:page] inc))
-(defn std-prev [this state] (update-in state [:page] dec))
+   CSS: These sections indicate classes you can use to style your
+   slide from within CSS.
 
-(def flexbox
-  {:display "flex"
-   :align-items "center"
-   :justify-content "center"
-   :height "100%"
-   :width "100%"})
+   If you are looking to create your own custom slides, check out
+   `jobim.protocols` for more information.
 
-(def title-style
-  {:text-align "center"})
-(def h1-style
-  {:font-weight "100"
-   :font-size "2em"
-   :padding-bottom "1em"})
-(def h2-style
-  {:font-weight "100"
-   :font-size "1em"})
-(defn center [pct elem]
-  [:div {:style {:width (str pct "%")
-                 :margin-left "auto"
-                 :margin-right "auto"}}
-   elem])
-(defrecord Title [title subtitle]
-  Slide
-  (render-slide [this state]
-    [:div
-     {:style title-style}
-     (center 80
-       [:h1
-        {:style h1-style}
-        title])
-     (center 66.6
-      [:h2
-        {:style h2-style}
-       subtitle])])
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
+   Be sure to read the macros in the clj `jobim.core` namespace."
+  (:require [reagent.core :as reagent]
+            [jobim.core.impl :as impl]))
 
-(defrecord Text [text]
-  Slide
-  (render-slide [this state]
-    [:div {:style title-style}
-     (center 80
-       [:h1 {:style h1-style} text])])
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
+(defn title
+  "A function for creating title slides.
+   <title>: hiccup for the title text
+   <subtitle>: hiccup for the subtitle
 
-(def pic-style
-  {:height "100%"
-   :width "auto"
-   :outline "10px #0E0E0E solid"})
+   CSS: jobim-title, jobim-subtitle"
+  [title subtitle]
+  (impl/->Title title subtitle))
 
-(defrecord Picture [url]
-  Slide
-  (render-slide [this state]
-    [:div
-     {:style (merge flexbox {:height "50%" :width "50%"})}
-     [:img {:src url :style pic-style}]])
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
+(defn text
+  "A function for creating slides with just text.
+   <text>: hiccup for your slide's text
 
-(defrecord CaptionedPic [url caption]
-  Slide
-  (render-slide [this state]
-    [:div {:style (merge flexbox {:flex-direction "column"})}
-     (render-slide (->Picture url) state)
-     (center 80
-       [:div
-        {:style {:padding-top "50px" :text-align "center"}}
-        caption])])
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
+   CSS: jobim-text"
+  [text]
+  (impl/->Text text))
 
-(defrecord ClojureCode [code env pprint-width]
-  Slide
-  (render-slide [this state]
-    [:div
-     {:style {:text-align "left"}}
-     (for [[line key] (zipmap code (range (count code)))]
-       [:div
-        {:key key
-         :dangerouslySetInnerHTML
-         #js{:__html (str "<pre><code>"
-                          (.-value (js/hljs.highlight
-                                    "clj"
-                                    (with-out-str
-                                      (pprint line {:width pprint-width}))))
-                          "</code></pre>")}}])])
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
+(defn img
+  "A function for creating a slide with just an image.
+   <src>: a string indicating the image's source"
+  [src]
+  (impl/->Picture src))
 
-(defrecord CustomSlide [component]
-  Slide
-  (render-slide [this state] (component state))
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
+(defn captioned-img
+  "A function for creating a slide with just an image.
+   <src>: a string indicating the image's source
+   <caption>: hiccup indicating a caption
 
-(defrecord Code [type code-str]
-  Slide
-  (render-slide [this state]
-    [:pre
-     [:code
-      {:class type
-       :dangerouslySetInnerHTML
-       #js{:__html (str "<pre><code>"
-                        (.-value (js/hljs.highlight type code-str))
-                        "</code></pre>")}}]])
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
+   CSS: jobim-caption"
+  [src caption]
+  (impl/->CaptionedPic src caption))
 
-(defn- render-bullet [cand-bullet]
-  (if (sequential? cand-bullet)
-    (into [:ul {:style {:font-size "0.8em"}}] (map render-bullet cand-bullet))
-    [:li cand-bullet]))
+(defn bullets
+  "Given a title and some buellets, draw a bulleted list.
+   <title>: hiccup denoting a title
+   <bullets>: any number of hiccup denoting bullets
 
-(defn render-bullets [bullets]
-  (into [:ul] (map render-bullet bullets)))
+   CSS: jobim-ul, jobim-li, jobim-list-title"
+  [title & bullets]
+  (impl/->BulletedList title bullets))
 
-(defrecord BulletedList [title bullets]
-  Slide
-  (render-slide [this state]
-    [:div
-     [:h3 {:style {:text-align "center"}} title]
-     (render-bullets bullets)])
-  (next-slide [this state] (std-next this state))
-  (prev-slide [this state] (std-prev this state)))
-
-(def outer-style
-  {:width "100%"
-   :height "100%"
-   :position "absolute"})
-
-(defn curr-slide [slides state] (nth slides (:page state)))
-
-(defn render-show [slides state show-style]
-  [:div
-   {:style outer-style}
-   [:div
-    {:style show-style}
-    (render-slide (curr-slide slides state) state)]])
-
-(defn render-show-outer [slides state-atom show-style]
-  (render-show slides @state-atom show-style))
-
-(def default-theme
-  {:background-color "#222222"
-   :color "#EDEDED"
-   :font-family "Droid Sans Mono, monospace"
-   :font-weight "100"
-   :font-size "2em"})
+(defn custom-slide
+  "Given a reagent component, render it as a slide.
+   <component>: A zero argument function that returns a valid
+   reagent data structure."
+  [component]
+  (impl/->CustomSlide component))
 
 (def default-style
-  (merge flexbox
-         default-theme))
+  "Jobim's default style. I recommend starting from here, and
+   merging any other styles you might want."
+  (merge impl/flexbox impl/default-theme))
 
-(defn guard [state slides]
-  (let [n (count slides)
-        i (:page state)]
-    (cond
-      (>= i n) (assoc-in state [:page] (dec n))
-      (< i 0) (assoc-in state [:page] 0)
-      :else state)))
+(defn new-show
+  "A helper function for creating a properly initialized
+   Jobim state."
+  []
+  (reagent/atom {:page 0}))
 
-(defn indent [lv arg]
-  (str
-   (apply str (take lv (repeat "  ")))
-   arg))
+(defn curr-slide
+  "Access the current slide of the show.
+   <slides>: A jobim slide show
+   <state>: An atom representing the current state of the
+   slide show."
+  [slides state]
+  (impl/curr-slide slides state))
 
-(defn indent* [indent-level]
-  (fn [arg]
-    (if (string? arg)
-      (indent indent-level arg)
-      (map (indent* (inc indent-level)) arg))))
+(defn code*
+  "Used for creating simple code examples in other languages.
+   <type>: The type of code this is, eg, Python, or Javascript.
+   <code>: The code data structure.
 
-(defn nl [arg] (str arg "\n"))
-(defn nl* [arg]
-  (conj (vec (map nl (butlast arg))) (last arg)))
+   In this function, you nest code in brackets to indicate indendation.
+   For example,
 
-(defn code [type & code]
+   (*code \"js\"
+     [\"function plus(a, b){\"
+      [\"return a + b\";]
+      \"}\"])
+
+   would return the following Javascript:
+
+   function plus(a,b){
+     return a + b;
+   }
+
+   It is important to note Jobim does not actually run this code.
+   It is simply text example."
+  [type & code]
   (->> code
-       (map (indent* 0))
+       (map (impl/indent* 0))
        (flatten)
-       (nl*)
+       (impl/nl*)
        (apply str)
-       (->Code type)))
-
-(defn slide-show [show-state style & slides]
-  (let [input (chan)]
-    (set! js/document.onkeydown
-     (fn []
-       (let [state @show-state
-             new-state (case (.. js/window -event -keyCode)
-                         37 (prev-slide (curr-slide slides state) state)
-                         39 (next-slide (curr-slide slides state) state)
-                         state)]
-         (reset! show-state (guard new-state slides)))))
-    (reagent/render-component
-     [render-show-outer slides show-state style]
-     (. js/document (getElementById "jobim"))))
-  (vec slides))
-
-(defn new-show [] (atom {:page 0}))
+       (impl/->Code type)))

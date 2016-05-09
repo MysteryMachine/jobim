@@ -1,33 +1,43 @@
 (ns jobim.core-test ^:figwheel-always
-  (:require [jobim.core :as jobim :refer-macros [clojure-code]]
+  (:require [jobim.core :as jobim]
+            [jobim.core.impl :as impl]
+            [jobim.protocols :as protocols]
             [cljs.test :refer-macros [deftest is testing run-tests]]
-						[jobim.figwheel.helper]))
+						[jobim.figwheel.helper])
+  (:require-macros [jobim.core :as jobim]
+                   [jobim.core.impl :as impl]))
 
-;; Note: I haven't figured out how to correctly use fixtures in cljs tests
-;; If you'd like to ping me and show me a good working example, I'd be very
-;; thankful!
+;; Fixtures
 
 (def slides
-  {:title (jobim/->Title "Test" "Mock")
-   :text (jobim/->Text "hello world")
-   :picture (jobim/->Picture "img.png")
-   :captioned (jobim/->CaptionedPic "img.png" "this is caption")
-   :clojure-code (jobim/->ClojureCode '((+ 1 2) (+ 3 4)) {} 40)
-   :custom-slide (jobim/->CustomSlide [:div])
-   :code (jobim/->Code "js" "function(){ return 1; }")})
+  {:title (jobim/title "Test" "Mock")
+   :text (jobim/text "hello world")
+   :picture (jobim/img "img.png")
+   :captioned (jobim/captioned-img "img.png" "this is caption")
+   :clojure-code (jobim/clojure-code 80 (+ 1 2) (+ 3 4) {} 40)
+   :custom-slide (jobim/custom-slide (fn [state] [:div (:text state)]))
+   :code (jobim/code* "js" ["function plus(a,b){"
+                            ["return a + b;"]
+                            "}"])})
 
 (def show
   [(:title slides)
    (:picture slides)])
 
+;; Protocols
+
 (deftest stds-test
   (testing "std-next"
-    (is (= (jobim/std-next {} {:page 19}) {:page 20})))
+    (is (= (protocols/std-next {} {:page 19 :index 1}) {:page 20 :index 0})))
   (testing "std-prev"
-    (is (= (jobim/std-prev {} {:page 19}) {:page 18}))))
+    (is (= (protocols/std-prev {} {:page 19 :index 10}) {:page 18 :index 0})))
+  (testing "std-up"
+    (is (= (protocols/std-up {} {:page 19 :index 0}) {:page 19 :index 1})))
+  (testing "std-do"
+    (is (= (protocols/std-down {} {:page 19 :index 1}) {:page 19 :index 0}))))
 
 (deftest center-test
-  (is (= (jobim/center 80 [:div])
+  (is (= (impl/center 80 [:div])
          [:div {:style {:width "80%"
                         :margin-left "auto"
                         :margin-right "auto"}}
@@ -36,69 +46,70 @@
 (deftest slide-test
   (testing "render-slide"
     (testing "Title"
-      (is (= (jobim/render-slide (:title slides))
+      (is (= (protocols/render-slide (:title slides) {})
              [:div
-              {:style jobim/title-style}
-              (jobim/center 80 [:h1 {:style jobim/h1-style} "Test"])
-              (jobim/center 66.6 [:h2 {:style jobim/h2-style} "Mock"])])))
+              {:style impl/title-style}
+              (impl/center 80 [:h1 {:style impl/h1-style :class "jobim-title"} "Test"])
+              (impl/center 66.6 [:h2 {:style impl/h2-style :class "jobim-subtitle"} "Mock"])])))
     (testing "Text"
-      (is (= (jobim/render-slide (:text slides))
-             [:div {:style jobim/title-style}
-              (jobim/center 80 [:h1 {:style jobim/h1-style} "hello world"])])))
+      (is (= (protocols/render-slide (:text slides) {})
+             [:div {:style impl/title-style}
+              (impl/center 80 [:h1 {:style impl/h1-style :class "jobim-text"} "hello world"])])))
     (testing "Picture"
-      (is (= (jobim/render-slide (:picture slides))
+      (is (= (protocols/render-slide (:picture slides) {})
              [:div
-              {:style (merge jobim/flexbox {:height "50%" :width "50%"})}
-              [:img {:src "img.png" :style jobim/pic-style}]])))
+              {:style (merge impl/flexbox {:height "50%" :width "50%"})}
+              [:img {:src "img.png" :style impl/pic-style}]])))
     (testing "CaptionedPic"
-      (is (= (jobim/render-slide (:captioned slides))
-             [:div {:style (merge jobim/flexbox {:flex-direction "column"})}
-              (jobim/render-slide (:picture slides))
-              (jobim/center 80
-                            [:div {:style
+      (is (= (protocols/render-slide (:captioned slides) {})
+             [:div {:style (merge impl/flexbox {:flex-direction "column"})}
+              (protocols/render-slide (:picture slides) {})
+              (impl/center 80
+                           [:div {:class "jobim-caption"
+                                  :style
                                    {:padding-top "50px" :text-align "center"}}
                              "this is caption"])])))
     (testing "ClojureCode"
-      (is (= (first (jobim/render-slide (:clojure-code slides))) :div))
-      (is (= (second (jobim/render-slide (:clojure-code slides)))
+      (is (= (first (protocols/render-slide (:clojure-code slides) {})) :div))
+      (is (= (second (protocols/render-slide (:clojure-code slides) {}))
              {:style {:text-align "left"}}))
-      (is (= (count (nth (jobim/render-slide (:clojure-code slides)) 2)) 2)))
+      (is (= (count (nth (protocols/render-slide (:clojure-code slides) {}) 2)) 4)))
     (testing "CustomSlide"
-      (is (= (jobim/render-slide (:custom-slide slides)) [:div])))
+      (is (= (protocols/render-slide (:custom-slide slides) {:text "pass"}) [:div "pass"]))) 
     (testing "Code"
-      (is (= (first (jobim/render-slide (:code slides))) :pre))
-      (is (= (-> (jobim/render-slide (:code slides)) second first) :code))
-      (is (= (-> (jobim/render-slide (:code slides)) second second :class) "js"))))
-  (testing "next-slide"
+      (is (= (first (protocols/render-slide (:code slides) {})) :pre))
+      (is (= (-> (protocols/render-slide (:code slides) {}) second first) :code))
+      (is (= (-> (protocols/render-slide (:code slides) {}) second second :class) "js"))))
+  (testing "next-slide" 
     (testing "Title"
-      (is (= (jobim/next-slide (:title slides) {:page 1}) {:page 2})))
+      (is (= (protocols/next-slide (:title slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "Picture"
-      (is (= (jobim/next-slide (:picture slides) {:page 1}) {:page 2})))
+      (is (= (protocols/next-slide (:picture slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "CaptionedPic"
-      (is (= (jobim/next-slide (:captioned slides) {:page 1}) {:page 2})))
+      (is (= (protocols/next-slide (:captioned slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "ClojureCode"
-      (is (= (jobim/next-slide (:clojure-code slides) {:page 1}) {:page 2})))
+      (is (= (protocols/next-slide (:clojure-code slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "Text"
-      (is (= (jobim/next-slide (:text slides) {:page 1}) {:page 2})))
+      (is (= (protocols/next-slide (:text slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "CustomSlide"
-      (is (= (jobim/next-slide (:custom-slide slides) {:page 1}) {:page 2})))
+      (is (= (protocols/next-slide (:custom-slide slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "Code"
-      (is (= (jobim/next-slide (:code slides) {:page 1}) {:page 2}))))
+      (is (= (protocols/next-slide (:code slides) {:page 1 :index 1}) {:page 2 :index 0}))))
   (testing "prev-slide"
     (testing "Title"
-      (is (= (jobim/prev-slide (:title slides) {:page 1}) {:page 0})))
+      (is (= (protocols/prev-slide (:title slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "Picture"
-      (is (= (jobim/prev-slide (:picture slides) {:page 1}) {:page 0})))
+      (is (= (protocols/prev-slide (:picture slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "CaptionedPic"
-      (is (= (jobim/prev-slide (:captioned slides) {:page 1}) {:page 0})))
+      (is (= (protocols/prev-slide (:captioned slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "ClojureCode"
-      (is (= (jobim/prev-slide (:captioned slides) {:page 1}) {:page 0})))
+      (is (= (protocols/prev-slide (:captioned slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "Text"
-      (is (= (jobim/prev-slide (:text slides) {:page 1}) {:page 0})))
+      (is (= (protocols/prev-slide (:text slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "CustomSlide"
-      (is (= (jobim/prev-slide (:custom-slide slides) {:page 1}) {:page 0})))
+      (is (= (protocols/prev-slide (:custom-slide slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "Code"
-      (is (= (jobim/prev-slide (:code slides) {:page 1}) {:page 0})))))
+      (is (= (protocols/prev-slide (:code slides) {:page 1 :index 1}) {:page 0 :index 0})))))
 
 (deftest curr-slide
   (is (= (jobim/curr-slide [:a :b :c] {:page 0}) :a))
@@ -107,60 +118,60 @@
 
 (deftest guard
   (testing "decrement"
-    (is (= (jobim/guard {:page 10} [:a :b :c]) {:page 2}))
-    (is (= (jobim/guard {:page 3} [:a :b :c]) {:page 2}))
-    (is (= (jobim/guard {:page 3 :ect 10} [:a :b :c]) {:page 2 :ect 10}))
-    (is (= (jobim/guard {:page 19} [:a :b :c :d :e :f]) {:page 5})))
+    (is (= (impl/guard {:page 10} [:a :b :c]) {:page 2}))
+    (is (= (impl/guard {:page 3} [:a :b :c]) {:page 2}))
+    (is (= (impl/guard {:page 3 :ect 10} [:a :b :c]) {:page 2 :ect 10}))
+    (is (= (impl/guard {:page 19} [:a :b :c :d :e :f]) {:page 5})))
   (testing "increment"
-    (is (= (jobim/guard {:page -1} [1]) {:page 0}))
-    (is (= (jobim/guard {:page -100} []) {:page 0}))
-    (is (= (jobim/guard {:page -12} [2 2 3]) {:page 0}))
-    (is (= (jobim/guard {:page -14 :n -10} [:a :c :e :d]) {:page 0 :n -10})))
+    (is (= (impl/guard {:page -1} [1]) {:page 0}))
+    (is (= (impl/guard {:page -100} [:a]) {:page 0}))
+    (is (= (impl/guard {:page -12} [2 2 3]) {:page 0}))
+    (is (= (impl/guard {:page -14 :n -10} [:a :c :e :d]) {:page 0 :n -10})))
   (testing "no change"
-    (is (= (jobim/guard {:page 3 :etc 1} [:a :b :c :f]) {:page 3 :etc 1}))
-    (is (= (jobim/guard {:page 1 :l 2} [:a :b :c :d :e]) {:page 1 :l 2}))
-    (is (= (jobim/guard {:page 0} [:a :b :c]) {:page 0}))
-    (is (= (jobim/guard {:page 4} [:a :b :c :f :e]) {:page 4}))))
+    (is (= (impl/guard {:page 3 :etc 1} [:a :b :c :f]) {:page 3 :etc 1}))
+    (is (= (impl/guard {:page 1 :l 2} [:a :b :c :d :e]) {:page 1 :l 2}))
+    (is (= (impl/guard {:page 0} [:a :b :c]) {:page 0}))
+    (is (= (impl/guard {:page 4} [:a :b :c :f :e]) {:page 4}))))
 
 (deftest render-show-test
   (testing "Paginaton"
-    (is (= (jobim/render-show show {:page 0} jobim/default-style)
-           [:div {:style jobim/outer-style}
+    (is (= (impl/render-show show {:page 0} jobim/default-style)
+           [:div {:style impl/outer-style}
             [:div
              {:style jobim/default-style}
-             (jobim/render-slide (:title slides))]]))
-    (is (= (jobim/render-show show {:page 1} jobim/default-style)
-           [:div {:style jobim/outer-style}
+             (protocols/render-slide (:title slides) {})]]))
+    (is (= (impl/render-show show {:page 1} jobim/default-style)
+           [:div {:style impl/outer-style}
             [:div
              {:style jobim/default-style}
-             (jobim/render-slide (:picture slides))]]))))
+             (protocols/render-slide (:picture slides) {})]]))))
 
 (deftest indent-test
-  (is (= (jobim/indent 0 "1 + 2") "1 + 2"))
-  (is (= (jobim/indent 1 "1 + 2") "  1 + 2"))
-  (is (= (jobim/indent 2 "1 + 2") "    1 + 2")))
+  (is (= (impl/indent 0 "1 + 2") "1 + 2"))
+  (is (= (impl/indent 1 "1 + 2") "  1 + 2"))
+  (is (= (impl/indent 2 "1 + 2") "    1 + 2")))
 
 (deftest indent*-test
-  (is (= ((jobim/indent* 0) "1 + 2") "1 + 2"))
-  (is (= ((jobim/indent* 1) "1 + 2") "  1 + 2"))
-  (is (= ((jobim/indent* 2) "1 + 2") "    1 + 2"))
-  (is (= ((jobim/indent* -1) ["1 + 2"]) ["1 + 2"]))
-  (is (= ((jobim/indent* 0) ["1 + 2"]) ["  1 + 2"]))
-  (is (= ((jobim/indent* 1) ["1 + 2"]) ["    1 + 2"]))
-  (is (= ((jobim/indent* -1) ["add():" ["1 + 2"]])  ["add():" ["  1 + 2"]]))
-  (is (= ((jobim/indent* 0)  ["add():" ["1 + 2"]])  ["  add():" ["    1 + 2"]]))
-  (is (= ((jobim/indent* 1)  ["add():" ["1 + 2"]])  ["    add():" ["      1 + 2"]])))
+  (is (= ((impl/indent* 0) "1 + 2") "1 + 2"))
+  (is (= ((impl/indent* 1) "1 + 2") "  1 + 2"))
+  (is (= ((impl/indent* 2) "1 + 2") "    1 + 2"))
+  (is (= ((impl/indent* -1) ["1 + 2"]) ["1 + 2"]))
+  (is (= ((impl/indent* 0) ["1 + 2"]) ["  1 + 2"]))
+  (is (= ((impl/indent* 1) ["1 + 2"]) ["    1 + 2"]))
+  (is (= ((impl/indent* -1) ["add():" ["1 + 2"]])  ["add():" ["  1 + 2"]]))
+  (is (= ((impl/indent* 0)  ["add():" ["1 + 2"]])  ["  add():" ["    1 + 2"]]))
+  (is (= ((impl/indent* 1)  ["add():" ["1 + 2"]])  ["    add():" ["      1 + 2"]])))
 
 (deftest nl
-  (is (= (jobim/nl "") "\n"))
-  (is (= (jobim/nl "1 + 2") "1 + 2\n")))
+  (is (= (impl/nl "") "\n"))
+  (is (= (impl/nl "1 + 2") "1 + 2\n")))
 
 (deftest nl*
-  (is (= (jobim/nl* ["1 + 2" "3 + 4"]) ["1 + 2\n" "3 + 4"]))
-  (is (= (jobim/nl* ["3 + 4"]) ["3 + 4"])))
+  (is (= (impl/nl* ["1 + 2" "3 + 4"]) ["1 + 2\n" "3 + 4"]))
+  (is (= (impl/nl* ["3 + 4"]) ["3 + 4"])))
 
 (def js-code
-  (jobim/code "js"
+  (jobim/code* "js"
     "function e(a, b){"
     ["var c = a + 1;"
      "var d = b + 2;"
@@ -169,7 +180,7 @@
     "e(10, 20);"))
 
 (def js-code-expect
-  (jobim/->Code "js"
+  (impl/->Code "js"
     (str "function e(a, b){\n"
          "  var c = a + 1;\n"
          "  var d = b + 2;\n"
@@ -178,7 +189,7 @@
          "e(10, 20);")))
 
 (def py-code
-  (jobim/code "py"
+  (jobim/code* "py"
     "def e(a, b):"
     ["c = a + 1"
      "d = b + 2"
@@ -186,12 +197,12 @@
     "e(10, 20)"))
 
 (def py-code-expect
-  (jobim/->Code "py"
-                (str "def e(a, b):\n"
-                     "  c = a + 1\n"
-                     "  d = b + 2\n"
-                     "  return c * d\n"
-                     "e(10, 20)")))
+  (impl/->Code "py"
+               (str "def e(a, b):\n"
+                    "  c = a + 1\n"
+                    "  d = b + 2\n"
+                    "  return c * d\n"
+                    "e(10, 20)")))
 
 (deftest code-test
   (testing "js-code"

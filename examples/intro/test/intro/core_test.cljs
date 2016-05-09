@@ -1,12 +1,14 @@
 (ns intro.core-test
   (:require [cljs.test :refer-macros [deftest is run-tests]]
-            [jobim.figwheel.helper]
-            [intro.core :as show]))
+            [intro.core :as show]
+            [jobim.figwheel.helper])
+  (:require-macros [jobim.core :as jobim]))
 
-#_(deftest code-slide-test
-  (is (= (get (:env show/code-slide) :a) 3))
-  (is (= (get (:env show/code-slide) :b) 6))
-  (is (= ((get (:env show/code-slide) :c) 1) 10))
-  (is (= (get (:env show/code-slide) :%4) 19)))
+(deftest code-slide-test
+  (let [{:keys [a b c %4]} (jobim/env show/code-slide)]
+    (is (= a 3))
+    (is (= b 6))
+    (is (= (c 1) 10))
+    (is (= %4 19))))
 
 (run-tests)
