@@ -53,7 +53,16 @@
 (defn bullets
   "Given a title and some buellets, draw a bulleted list.
    <title>: hiccup denoting a title
-   <bullets>: any number of hiccup denoting bullets
+   <bullets>: a list of strings denoting bullets. Note that
+   wrapping bullets in arrays will lead to deeper nesting.
+   For example, (bullets :title :a [:b :c] :d) will lead to
+   a slide of the format
+
+   :title
+   * :a
+     * :b
+     * :c
+   * :d
 
    CSS: jobim-ul, jobim-li, jobim-list-title"
   [title & bullets]
