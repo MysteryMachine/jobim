@@ -119,15 +119,16 @@
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
-(defn- render-bullet [cand-bullet]
+(defn render-bullet [cand-bullet]
   (if (sequential? cand-bullet)
-    (into [:ul {:style {:font-size "0.8em"}}]
+    (into [:ul {:style {:font-size "0.8em"}
+                :class "jobim-ul"}]
           (map render-bullet)
           cand-bullet)
     [:li {:class "jobim-li"} cand-bullet]))
 
 (defn render-bullets [bullets]
-  (into [:ul {:class "jobim-ul"}] (map render-bullet bullets)))
+  (into [:ul {:class "jobim-ul"}] (map render-bullet) bullets))
 
 (defrecord BulletedList [title bullets]
   protocols/Slide
@@ -170,8 +171,8 @@
       (let [n (protocols/max-index slide)
             i (:index state)]
         (cond
-          (>= i n) (assoc state :page (dec n))
-          (< i 0) (assoc state :page 0)
+          (>= i n) (assoc state :index n)
+          (< i 0) (assoc state :index 0)
           :else state))
       state)))
 

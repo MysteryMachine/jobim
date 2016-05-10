@@ -7,13 +7,12 @@
   (:require-macros [jobim.core :as jobim]
                    [jobim.core.impl :as impl]))
 
-;; Fixtures
-
 (def slides
   {:title (jobim/title "Test" "Mock")
    :text (jobim/text "hello world")
    :picture (jobim/img "img.png")
    :captioned (jobim/captioned-img "img.png" "this is caption")
+   :bullets (jobim/bullets "title" "a" "b" "c")
    :clojure-code (jobim/clojure-code 80 (+ 1 2) (+ 3 4) {} 40)
    :custom-slide (jobim/custom-slide (fn [state] [:div (:text state)]))
    :code (jobim/code* "js" ["function plus(a,b){"
@@ -24,7 +23,10 @@
   [(:title slides)
    (:picture slides)])
 
-;; Protocols
+(jobim/defclj my-code 80 (+ 1 2) (+ 3 4) {} 40)
+
+(deftest defclj-test
+  (is (= my-code (:clojure-code slides))))
 
 (deftest stds-test
   (testing "std-next"
@@ -55,6 +57,16 @@
       (is (= (protocols/render-slide (:text slides) {})
              [:div {:style impl/title-style}
               (impl/center 80 [:h1 {:style impl/h1-style :class "jobim-text"} "hello world"])])))
+    (testing "BulletedList"
+      (is (= (protocols/render-slide (:picture slides) {})
+             [:div
+              {:style (merge impl/flexbox
+                             {:height "50%"
+                              :width "50%"})}
+              [:img {:src "img.png"
+                     :style {:height "100%"
+                             :width "auto"
+                             :outline "10px #0E0E0E solid"}}]] )))
     (testing "Picture"
       (is (= (protocols/render-slide (:picture slides) {})
              [:div
@@ -80,7 +92,9 @@
       (is (= (first (protocols/render-slide (:code slides) {})) :pre))
       (is (= (-> (protocols/render-slide (:code slides) {}) second first) :code))
       (is (= (-> (protocols/render-slide (:code slides) {}) second second :class) "js"))))
-  (testing "next-slide" 
+  (testing "next-slide"
+    (testing "BulletedList"
+      (is (= (protocols/next-slide (:bullets slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "Title"
       (is (= (protocols/next-slide (:title slides) {:page 1 :index 1}) {:page 2 :index 0})))
     (testing "Picture"
@@ -98,6 +112,8 @@
   (testing "prev-slide"
     (testing "Title"
       (is (= (protocols/prev-slide (:title slides) {:page 1 :index 1}) {:page 0 :index 0})))
+    (testing "BulletedList"
+      (is (= (protocols/prev-slide (:bullets slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "Picture"
       (is (= (protocols/prev-slide (:picture slides) {:page 1 :index 1}) {:page 0 :index 0})))
     (testing "CaptionedPic"
@@ -116,22 +132,70 @@
   (is (= (jobim/curr-slide [:a :b :c] {:page 1}) :b))
   (is (= (jobim/curr-slide [:a :b :c] {:page 2}) :c)))
 
-(deftest guard
+(deftest guard-page-test
   (testing "decrement"
-    (is (= (impl/guard {:page 10} [:a :b :c]) {:page 2}))
-    (is (= (impl/guard {:page 3} [:a :b :c]) {:page 2}))
-    (is (= (impl/guard {:page 3 :ect 10} [:a :b :c]) {:page 2 :ect 10}))
-    (is (= (impl/guard {:page 19} [:a :b :c :d :e :f]) {:page 5})))
+    (is (= (impl/guard-page {:page 10} [:a :b :c]) {:page 2}))
+    (is (= (impl/guard-page {:page 3} [:a :b :c]) {:page 2}))
+    (is (= (impl/guard-page {:page 3 :ect 10} [:a :b :c]) {:page 2 :ect 10}))
+    (is (= (impl/guard-page {:page 19} [:a :b :c :d :e :f]) {:page 5})))
   (testing "increment"
-    (is (= (impl/guard {:page -1} [1]) {:page 0}))
-    (is (= (impl/guard {:page -100} [:a]) {:page 0}))
-    (is (= (impl/guard {:page -12} [2 2 3]) {:page 0}))
-    (is (= (impl/guard {:page -14 :n -10} [:a :c :e :d]) {:page 0 :n -10})))
+    (is (= (impl/guard-page {:page -1} [1]) {:page 0}))
+    (is (= (impl/guard-page {:page -100} [:a]) {:page 0}))
+    (is (= (impl/guard-page {:page -12} [2 2 3]) {:page 0}))
+    (is (= (impl/guard-page {:page -14 :n -10} [:a :c :e :d]) {:page 0 :n -10})))
   (testing "no change"
-    (is (= (impl/guard {:page 3 :etc 1} [:a :b :c :f]) {:page 3 :etc 1}))
-    (is (= (impl/guard {:page 1 :l 2} [:a :b :c :d :e]) {:page 1 :l 2}))
-    (is (= (impl/guard {:page 0} [:a :b :c]) {:page 0}))
-    (is (= (impl/guard {:page 4} [:a :b :c :f :e]) {:page 4}))))
+    (is (= (impl/guard-page {:page 3 :etc 1} [:a :b :c :f]) {:page 3 :etc 1}))
+    (is (= (impl/guard-page {:page 1 :l 2} [:a :b :c :d :e]) {:page 1 :l 2}))
+    (is (= (impl/guard-page {:page 0} [:a :b :c]) {:page 0}))
+    (is (= (impl/guard-page {:page 4} [:a :b :c :f :e]) {:page 4}))))
+
+(defrecord T [i]
+  protocols/Indexable
+  (up-slide [this _] this)
+  (down-slide [this _] this)
+  (max-index [this] i))
+
+(deftest guard-index-test
+  (testing "decrement"
+    (is (= (impl/guard-index {:index 10 :page 0}  [(->T 3) :b :c])
+           {:page 0 :index 3}))
+    (is (= (impl/guard-index {:index 3 :page 1} [:a (->T 3) :c])
+           {:page 1 :index 3}))
+    (is (= (impl/guard-index {:index 3 :ect 10 :page 1} [:a (->T 2) :c])
+           {:page 1 :ect 10 :index 2}))
+    (is (= (impl/guard-index {:index 19 :page 5} [:a :b :c :d :e (->T 18)])
+           {:page 5 :index 18})))
+  (testing "increment"
+    (is (= (impl/guard-index {:index -1 :page 1} [1 (->T 1)])
+           {:page 1 :index 0}))
+    (is (= (impl/guard-index {:index -100 :page 0} [(->T 11) :a])
+           {:page 0 :index 0}))
+    (is (= (impl/guard-index {:index -12 :page 4} [2 2 3 1 (->T 10)])
+           {:page 4 :index 0}))
+    (is (= (impl/guard-index {:index -14 :n -10 :page 2} [:a :c (->T 11) :e :d])
+           {:page 2 :n -10 :index 0}))) 
+  (testing "no change"
+    (is (= (impl/guard-index {:index 3 :etc 1 :page 0} [{} :b :c :f])
+           {:page 0 :etc 1 :index 3}))
+    (is (= (impl/guard-index {:index 1 :l 2 :page 1} [:a (->T 10) :b :c :d :e])
+           {:page 1 :l 2 :index 1}))
+    (is (= (impl/guard-index {:index 0 :page 2} [:a :b (->T 2) :c])
+           {:page 2 :index 0}))
+    (is (= (impl/guard-index {:index 9 :page 3} [:a :b :c (->T 9) :f :e])
+           {:page 3 :index 9}))))
+
+(def test-slides (vec (repeat 2 (->T 2))))
+
+(deftest guard-test
+  (= {:page 0 :index 2} (impl/guard {:page -1 :index 3} test-slides))
+  (= {:page 2 :index 0} (impl/guard {:page 3 :index -1} test-slides))
+  (= {:page 1 :index 0} (impl/guard {:page 1 :index -1} test-slides))
+  (= {:page 0 :index 1} (impl/guard {:page -1 :index 1} test-slides))
+  (= {:page 1 :index 2} (impl/guard {:page 1 :index 3} test-slides))
+  (= {:page 2 :index 1} (impl/guard {:page 3 :index 1} test-slides))
+  (= {:page 0 :index 0} (impl/guard {:page -1 :index -1} test-slides))
+  (= {:page 2 :index 2} (impl/guard {:page 3 :index 3} test-slides))
+  (= {:page 1 :index 1} (impl/guard {:page 1 :index 1} test-slides)))
 
 (deftest render-show-test
   (testing "Paginaton"
@@ -228,8 +292,6 @@
    (swap! atm inc)
    @atm))
 
-(def clj-env (:env clj))
-
 (def simple-clj
   (jobim/clojure-code 40
    (+ 1 2)
@@ -237,21 +299,24 @@
    (defn b [c d] (+ a c d))))
 
 (deftest clj-test
-  (testing "env"
-    (is (= (get clj-env :%0) 3))
-    (is (= (get clj-env :%3) 18))
-    (is (= (get clj-env :%5) 17))
-    (is (= (get clj-env :%7) 30))
-    (is (= (get clj-env :%8) 1))
-    (is (= (get clj-env :%9) :a))
-    (is (= (get clj-env :%10) "b"))
-    (is (= (get clj-env :%12) 0))
-    (is (= (get clj-env :%14) 1))
-    (is (= @(get clj-env :atm) 1))
-    (is (not (nil? (get clj-env :a))))
-    (is (not (nil? (get clj-env :b))))
-    (is (not (nil? (get clj-env :d))))
-    (is (not (nil? (get clj-env :n)))))
+  (let [{:keys [%0 %3 %5 %7 %8 %9
+                %10 %12 %14 atm
+                a b d n]} (jobim/env clj)]
+   (testing "env"
+     (is (= %0 3))
+     (is (= %3 18))
+     (is (= %5 17))
+     (is (= %7 30))
+     (is (= %8 1))
+     (is (= %9 :a))
+     (is (= %10 "b"))
+     (is (= %12 0))
+     (is (= %14 1))
+     (is (= @atm 1))
+     (is (not (nil? a)))
+     (is (not (nil? b)))
+     (is (not (nil? d)))
+     (is (not (nil? n)))))
   (testing "code"
     (is (= (:code simple-clj)
            '((+ 1 2)
@@ -259,5 +324,30 @@
              (defn b [c d] (+ a c d))))))
   (testing "pprint-width"
     (is (= (:pprint-width clj 40)))))
+
+(def bullet-data {:class "jobim-li"})
+(def bullets-data {:class "jobim-ul"})
+(def bullets*-data {:class "jobim-ul"
+                    :style {:font-size "0.8em"}})
+
+(deftest render-bullet-test
+  (is (= [:li bullet-data "ayy"] (impl/render-bullet "ayy")))
+  (is (= [:ul bullets*-data
+          [:li bullet-data "a"]
+          [:li bullet-data "b"]
+          [:ul bullets*-data
+           [:li bullet-data "c"]]]
+         (impl/render-bullet ["a" "b" ["c"]]))))
+
+(deftest render-bullets-test
+  (is (= [:ul bullets-data
+          [:li bullet-data "ayy"]]
+         (impl/render-bullets ["ayy"])))
+  (is (= [:ul bullets-data
+          [:li bullet-data "a"]
+          [:li bullet-data "b"]
+          [:ul bullets*-data
+           [:li bullet-data "c"]]]
+         (impl/render-bullets ["a" "b" ["c"]]))))
 
 (run-tests)
