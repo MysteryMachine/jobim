@@ -45,6 +45,9 @@
   [width comment & code]
   `(jobim.core.impl/->ClojureCode '~code {:length 0} ~width ~comment))
 
+(defmacro inline [& code]
+  `(jobim.core.impl/render-inline-code (str '~@code)))
+
 (defmacro defshow
   "Given a state, a style, and some slides, renders a Jobim
    slide show.

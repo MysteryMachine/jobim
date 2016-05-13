@@ -143,9 +143,10 @@
   protocols/Slide
   (render-slide [this state]
     [:div
-     [:h3 {:style {:text-align "center"}
-           :class "jobim-list-title"}
-      title]
+     (when title
+       [:h3 {:style {:text-align "center"}
+             :class "jobim-list-title"}
+        title])
      (render-bullets bullets)])
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
@@ -253,3 +254,26 @@
     [render-blog-outer show-state components]
     (. js/document (getElementById "jobim")))
    components))
+
+(defn render-inline-code [line]
+  [:span
+   {:style {:background-color "#f2f2f2"
+            :padding "0 5px 3px 5px"
+            :border-radius "10px"
+            :border "0px solid"
+            :display "inline-block"}
+    :dangerouslySetInnerHTML
+    #js{:__html (str "<code>"
+                     (.-value (js/hljs.highlight "clj" line))
+                     "</code>")}}])
+
+(defn component [slide]
+  (->CustomSlide
+   (fn [state]
+     [:div
+      {:style {:padding "10px"
+               :background-color "#f2f2f2"
+               :border-radius "10px"
+               :border "0px solid"
+               :margin "20px 0"}}
+      [(get-in slide [:env :component])]])))

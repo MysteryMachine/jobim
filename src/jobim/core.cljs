@@ -16,7 +16,8 @@
 
    Be sure to read the macros in the clj `jobim.core` namespace."
   (:require [reagent.core :as reagent]
-            [jobim.core.impl :as impl]))
+            [jobim.core.impl :as impl]
+            [jobim.protocols :as protocols]))
 
 (defn title
   "A function for creating title slides.
@@ -32,8 +33,8 @@
    <text>: hiccup for your slide's text
 
    CSS: jobim-text"
-  [text]
-  (impl/->Text text))
+  [& text]
+  (impl/->Text (into [:div] text)))
 
 (defn img
   "A function for creating a slide with just an image.
@@ -122,3 +123,6 @@
        (impl/nl*)
        (apply str)
        (impl/->Code type)))
+
+(defn component [slide]
+  (impl/component slide))
