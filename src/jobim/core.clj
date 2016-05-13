@@ -10,13 +10,24 @@
    are fine. defs and defns will be stored within the state, and jobim
    will be sure to evaluate any code that depends on those vars correctly."
   [width & code]
-  `(jobim.core.impl/->ClojureCode '~code ~(impl/transform-code code) ~width))
+  `(jobim.core.impl/->ClojureCode '~code ~(impl/transform-code code) ~width nil))
+
+(defmacro commented-clj
+  "Like `clojure-code` but takes a comment for the code.
+  <comment>: Hiccup"
+  [width comment & code]
+  `(jobim.core.impl/->ClojureCode '~code ~(impl/transform-code code) ~width ~comment))
 
 (defmacro defclj
   "Like `clojure-code`, but defs your slide to the namespace. Recommended
    over `clojure-code` as this format improves testability."
   [name width & code]
   `(def ~name (clojure-code ~width ~@code)))
+
+(defmacro defcommented-clj
+  "Like `commmented-clj` but defs your slide to the namesspace."
+  [name width comment & code]
+  `(def ~name (clojure-code ~width ~@code ~comment)))
 
 (defmacro pseudo-clj
   "Given a width and some Clojure code, create a textual representation of
@@ -27,7 +38,12 @@
    <code>: Literal clojure code. Should not be unquoted. Several expressions
    are fine."
   [width & code]
-  `(jobim.core.impl/->ClojureCode '~code {:length 0} ~width))
+  `(jobim.core.impl/->ClojureCode '~code {:length 0} ~width nil))
+
+(defmacro commented-pseudo-clj
+  "Like `psuedo-clj`, but takes a comment."
+  [width comment & code]
+  `(jobim.core.impl/->ClojureCode '~code {:length 0} ~width ~comment))
 
 (defmacro defshow
   "Given a state, a style, and some slides, renders a Jobim

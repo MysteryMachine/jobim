@@ -14,10 +14,10 @@
    :width "100%"})
 
 (def title-style
-  {:text-align "center"})
+  {:text-align "center" :width "100%"})
 (def h1-style
   {:font-weight "100"
-   :font-size "2em"
+   :font-size "1.2em"
    :padding-bottom "1em"})
 (def h2-style
   {:font-weight "100"
@@ -82,21 +82,30 @@
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
-(defrecord ClojureCode [code env pprint-width]
+(defrecord ClojureCode [code env pprint-width comment]
   protocols/Slide
   (render-slide [this state]
-    [:div
-     {:style {:text-align "left"}}
-     (for [[line key] (zipmap code (range (count code)))]
-       [:div
-        {:key key
-         :dangerouslySetInnerHTML
-         #js{:__html (str "<pre><code>"
-                          (.-value (js/hljs.highlight
-                                    "clj"
-                                    (with-out-str
-                                      (pprint line {:width pprint-width}))))
-                          "</code></pre>")}}])])
+    [:div {:style flexbox}
+     [:div (when comment
+             {:style {:margin "2em auto"
+                      :max-width "80%"}})
+      [:div
+       (for [[line key] (zipmap code (range (count code)))]
+         [:div
+          {:key key
+           :dangerouslySetInnerHTML
+           #js{:__html (str "<pre><code>"
+                            (.-value (js/hljs.highlight
+                                      "clj"
+                                      (with-out-str
+                                        (pprint line {:width pprint-width}))))
+                            "</code></pre>")}}])]
+      (if comment
+        [:div
+         {:class "jobim-comment"
+          :style {:margin-top "2em"}}
+         comment]
+        [:div])]])
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 

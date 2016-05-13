@@ -33,7 +33,8 @@
   (jobim/text "Most of our technical slide shows are just plain strings or files!")
   (jobim/text "What if we could write techincal presentations in actual testable code!")
   (jobim/text "The Basics")
-  (jobim/pseudo-clj 80
+  (jobim/commented-pseudo-clj 80
+    [:span [:strong "defshow"] " forms the basis for rendering slides on screen."]
     (defshow show-name
       jobim/default-style
       (jobim/title "title" "subtitle")
