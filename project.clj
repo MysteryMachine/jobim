@@ -36,6 +36,15 @@
                            :asset-path "js/compiled/dev/out"
                            :main intro.core-test
                            :source-map true
+                           :cache-analysis true}}
+               {:id "blog"
+                :source-paths ["src" "examples/intro/src" "examples/intro/test"]
+                :figwheel true
+                :compiler {:output-to "resources/public/js/compiled/dev/dev.js"
+                           :output-dir "resources/public/js/compiled/dev/out"
+                           :asset-path "js/compiled/dev/out"
+                           :main intro.blog-test
+                           :source-map true
                            :cache-analysis true}}]}
 
   :figwheel {:css-dirs ["resources/public/css"]

@@ -229,6 +229,13 @@
                      state)]
      (reset! show-state (guard new-state slides)))))
 
+(defn render-blog-outer [show-state components]
+  (let [state @show-state]
+    (into [:div]
+     (for [i (range (count components))]
+        [:div {:id i}
+         [protocols/render-slide (nth components i) state]]))))
+
 (defn slide-show
   [show-state style & slides]
   (let [input (chan)]
@@ -238,3 +245,11 @@
      [render-show-outer slides show-state style]
      (. js/document (getElementById "jobim"))))
   (vec slides))
+
+(defn blog-post
+  [show-state & components]
+  (let [components (vec components)]
+   (reagent/render-component
+    [render-blog-outer show-state components]
+    (. js/document (getElementById "jobim")))
+   components))

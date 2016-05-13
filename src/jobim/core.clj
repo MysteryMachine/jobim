@@ -54,6 +54,11 @@
   [name state style & slides]
   `(def ~name (impl/slide-show ~state ~style ~@slides)))
 
+(defmacro defblog
+  ""
+  [name state & slides]
+  `(def ~name (impl/blog-post ~state ~@slides)))
+
 (defmacro env
   "* [slide]
      Accesses the environment within a `clojure-code` slide.

@@ -1,0 +1,23 @@
+.jobim-flexbox{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.jobim-title{
+    text-align: center;
+    width: 100%;
+}
+
+.jobim-h1{
+    font-weight: 100;
+    font-size: 1.2em;
+    padding-bottom: 1em;
+}
+
+.jobim-h2{
+    font-weight: 100;
+    font-size: 1em;
+}
