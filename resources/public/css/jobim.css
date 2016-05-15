@@ -6,18 +6,90 @@
     width: 100%;
 }
 
-.jobim-title{
+.jobim-flexbox.pic{
+    width: 50%;
+    height: 50%;
+}
+
+.jobim-flexbox.captioned{
+    flex-direction: column;
+}
+
+.jobim-title-style{
     text-align: center;
     width: 100%;
 }
 
-.jobim-h1{
+.jobim-title{
     font-weight: 100;
     font-size: 1.2em;
     padding-bottom: 1em;
 }
 
-.jobim-h2{
+.jobim-subtitle{
     font-weight: 100;
     font-size: 1em;
+}
+
+.jobim-center-80{
+    width: 80%;
+    margin: 0 auto;
+}
+
+.jobim-center-66{
+    width: 66.6%;
+    margin: 0 auto;
+}
+
+.jobim-pic-style{
+    height: 100%;
+    width: auto;
+    outline: 10px #0E0E0E solid;
+}
+
+.jobim-caption{
+    padding-top: 50px;
+    text-align: center;
+}
+
+.jobim-code.commented{
+    margin: 2em auto;
+    max-width: 80%;
+}
+
+.jobim-comment{
+    margin-top: 2em;
+}
+
+.jobim-ul{
+    font-size: 0.8em;
+}
+
+.jobim-outer-style{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+.jobim-defaults{
+    background-color: #222;
+    color: #EDEDED;
+    font-family: Droid Sans Mono, monospace;
+    font-weight: 100;
+    font-size: 2em;
+}
+
+.jobim-inline{
+    background-color: #f2f2f2;
+    padding: 0 5px 3px 5px;
+    border-radius: 10px;
+    border: 0px solid;
+    display: inline-block;
+}
+
+.jobim-component{
+    padding: 10px;
+    background-color: #f2f2f2;
+    border: 0px solid;
+    margin: 20px 0;
 }

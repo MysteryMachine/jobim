@@ -1,4 +1,4 @@
-(defproject org.clojars.mysterysal/jobim "2.0.0"
+(defproject org.clojars.mysterysal/jobim "2.0.1-SNAPSHOT"
   :description "Presentations in cljs!"
   :url "https://github.com/MysteryMachine/jobim"
   :license {:name "Eclipse Public License"

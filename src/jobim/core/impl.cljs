@@ -31,27 +31,31 @@
 (defrecord Title [title subtitle]
   protocols/Slide
   (render-slide [this state]
-    [:div
-     {:style title-style}
-     (center 80
-       [:h1
-        {:style h1-style
-         :class "jobim-title"}
-        title])
-     (center 66.6
-      [:h2
-       {:style h2-style
-        :class "jobim-subtitle"}
-       subtitle])])
+    (if-not (:css state)
+     [:div
+      {:style title-style
+       :class "jobim-title-style"}
+       (center 80
+        [:h1 {:style h1-style :class "jobim-title"} title])
+       (center 66.6
+        [:h2 {:style h2-style :class "jobim-subtitle"} subtitle])]
+     [:div.jobim-title-style
+      [:div.jobim-center-80
+       [:h1.jobim-title title]]
+      [:div.jobim-center-66
+       [:h2.jobim-subtitle subtitle]]]))
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
 (defrecord Text [text]
   protocols/Slide
   (render-slide [this state]
-    [:div {:style title-style}
-     (center 80
-       [:h1 {:style h1-style :class "jobim-text"} text])])
+    [:div {:style (if-not (:css state) title-style {})}
+     (if-not (:css state)
+      (center 80
+       [:div {:style h1-style :class "jobim-text"} text])
+      [:div.job-center-80
+       [:div.jobim-text text]])])
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
@@ -63,32 +67,40 @@
 (defrecord Picture [src]
   protocols/Slide
   (render-slide [this state]
-    [:div
-     {:style (merge flexbox {:height "50%" :width "50%"})}
-     [:img {:src src :style pic-style}]])
+    [:div.jobim-flexbox.pic
+     {:style (if (:css state) {}
+               (merge flexbox {:height "50%" :width "50%"}))}
+     [:img.jobim-pic-style
+      {:src src :style (if (:css state) {} pic-style)}]])
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
 (defrecord CaptionedPic [url caption]
   protocols/Slide
   (render-slide [this state]
-    [:div {:style (merge flexbox {:flex-direction "column"})}
+    [:div.jobim-flexbox.captioned
+     {:style (if (:css state) {}
+              (merge flexbox {:flex-direction "column"}))}
      (protocols/render-slide (->Picture url) state)
-     (center 80
+     (if-not (:css state)
+      (center 80
        [:div
         {:style {:padding-top "50px" :text-align "center"}
          :class "jobim-caption"}
-        caption])])
+        caption])
+      [:div.jobim-center-80
+       [:style.jobim-caption caption]])])
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
 (defrecord ClojureCode [code env pprint-width comment]
   protocols/Slide
   (render-slide [this state]
-    [:div {:style flexbox}
+    [:div {:style.jobim-flexbox (if-not (:css state) flexbox)}
      [:div (when comment
-             {:style {:margin "2em auto"
-                      :max-width "80%"}})
+             (if-not (:css state)
+               {:style {:margin "2em auto" :max-width "80%"}}
+               {:class "jobim-code.commented"}))
       [:div
        (for [[line key] (zipmap code (range (count code)))]
          [:div
@@ -128,26 +140,27 @@
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
-(defn render-bullet [cand-bullet]
+(defn render-bullet [css cand-bullet]
   (if (sequential? cand-bullet)
-    (into [:ul {:style {:font-size "0.8em"}
+    (into [:ul {:style (if css {} {:font-size "0.8em"})
                 :class "jobim-ul"}]
-          (map render-bullet)
+          (map (partial css render-bullet))
           cand-bullet)
     [:li {:class "jobim-li"} cand-bullet]))
 
-(defn render-bullets [bullets]
-  (into [:ul {:class "jobim-ul"}] (map render-bullet) bullets))
+(defn render-bullets [css bullets]
+  (into [:ul {:class "jobim-ul"}]
+        (map (partial render-bullet css)) bullets))
 
 (defrecord BulletedList [title bullets]
   protocols/Slide
   (render-slide [this state]
     [:div
      (when title
-       [:h3 {:style {:text-align "center"}
+       [:h3 {:style (if (:css state) {} {:text-align "center"})
              :class "jobim-list-title"}
         title])
-     (render-bullets bullets)])
+     (render-bullets (:css state) bullets)])
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
@@ -159,7 +172,7 @@
 (defn curr-slide [slides state] (nth slides (:page state)))
 
 (defn render-show [slides state show-style]
-  [:div
+  [:div.outer-style
    {:style outer-style}
    [:div
     {:style show-style}
@@ -239,6 +252,7 @@
 
 (defn slide-show
   [show-state style & slides]
+  (when (= :css style) (swap! show-state #(assoc % :css true)))
   (let [input (chan)]
     (set! js/document.onkeydown
           (handle-keys show-state style slides))
@@ -249,6 +263,7 @@
 
 (defn blog-post
   [show-state & components]
+  (swap! show-state #(assoc % :css true))
   (let [components (vec components)]
    (reagent/render-component
     [render-blog-outer show-state components]
@@ -256,13 +271,8 @@
    components))
 
 (defn render-inline-code [line]
-  [:span
-   {:style {:background-color "#f2f2f2"
-            :padding "0 5px 3px 5px"
-            :border-radius "10px"
-            :border "0px solid"
-            :display "inline-block"}
-    :dangerouslySetInnerHTML
+  [:span.jobim-inline
+   {:dangerouslySetInnerHTML
     #js{:__html (str "<code>"
                      (.-value (js/hljs.highlight "clj" line))
                      "</code>")}}])
@@ -270,10 +280,5 @@
 (defn component [slide]
   (->CustomSlide
    (fn [state]
-     [:div
-      {:style {:padding "10px"
-               :background-color "#f2f2f2"
-               :border-radius "10px"
-               :border "0px solid"
-               :margin "20px 0"}}
+     [:div.jobim-component
       [(get-in slide [:env :component])]])))
