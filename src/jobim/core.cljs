@@ -25,8 +25,10 @@
    <subtitle>: hiccup for the subtitle
 
    CSS: jobim-title, jobim-subtitle"
-  [title subtitle]
-  (impl/->Title title subtitle))
+  ([title subtitle]
+   (impl/->Title title subtitle))
+  ([my-title]
+   (title my-title "")))
 
 (defn text
   "A function for creating slides with just text.

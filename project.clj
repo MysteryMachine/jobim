@@ -45,6 +45,15 @@
                            :asset-path "js/compiled/dev/out"
                            :main intro.blog-test
                            :source-map true
+                           :cache-analysis true}}
+               {:id "cljnyc"
+                :source-paths ["src" "examples/cljnyc/src" "examples/cljnyc/test"]
+                :figwheel true
+                :compiler {:output-to "resources/public/js/compiled/dev/dev.js"
+                           :output-dir "resources/public/js/compiled/dev/out"
+                           :asset-path "js/compiled/dev/out"
+                           :main cljnyc.core-test
+                           :source-map true
                            :cache-analysis true}}]}
 
   :figwheel {:css-dirs ["resources/public/css"]

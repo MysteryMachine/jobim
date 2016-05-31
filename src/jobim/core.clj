@@ -27,7 +27,7 @@
 (defmacro defcommented-clj
   "Like `commmented-clj` but defs your slide to the namesspace."
   [name width comment & code]
-  `(def ~name (clojure-code ~width ~@code ~comment)))
+  `(def ~name (commented-clj ~width ~comment ~@code)))
 
 (defmacro pseudo-clj
   "Given a width and some Clojure code, create a textual representation of

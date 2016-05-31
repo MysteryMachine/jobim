@@ -17,7 +17,7 @@
   {:text-align "center" :width "100%"})
 (def h1-style
   {:font-weight "100"
-   :font-size "1.2em"
+   :font-size "2em"
    :padding-bottom "1em"})
 (def h2-style
   {:font-weight "100"
@@ -53,7 +53,7 @@
     [:div {:style (if-not (:css state) title-style {})}
      (if-not (:css state)
       (center 80
-       [:div {:style h1-style :class "jobim-text"} text])
+       [:div {:style {} :class "jobim-text"} text])
       [:div.job-center-80
        [:div.jobim-text text]])])
   (next-slide [this state] (protocols/std-next this state))
@@ -96,22 +96,24 @@
 (defrecord ClojureCode [code env pprint-width comment]
   protocols/Slide
   (render-slide [this state]
-    [:div {:style.jobim-flexbox (if-not (:css state) flexbox)}
+    [:div.jobim-flexbox {:style (if-not (:css state) flexbox)}
      [:div (when comment
              (if-not (:css state)
                {:style {:margin "2em auto" :max-width "80%"}}
                {:class "jobim-code.commented"}))
-      [:div
-       (for [[line key] (zipmap code (range (count code)))]
-         [:div
-          {:key key
-           :dangerouslySetInnerHTML
-           #js{:__html (str "<pre><code>"
-                            (.-value (js/hljs.highlight
-                                      "clj"
-                                      (with-out-str
-                                        (pprint line {:width pprint-width}))))
-                            "</code></pre>")}}])]
+      [:div.jobim-flexbox {:style flexbox}
+       [:div
+        (for [[line key] (zipmap code (range (count code)))]
+          [:div
+           {:key key
+            :style {:padding-bottom "1em"}
+            :dangerouslySetInnerHTML
+            #js{:__html (str "<pre><code>"
+                             (.-value (js/hljs.highlight
+                                       "clj"
+                                       (with-out-str
+                                         (pprint line {:width pprint-width}))))
+                             "</code></pre>")}}])]]
       (if comment
         [:div
          {:class "jobim-comment"
@@ -140,11 +142,11 @@
   (next-slide [this state] (protocols/std-next this state))
   (prev-slide [this state] (protocols/std-prev this state)))
 
-(defn render-bullet [css cand-bullet]
+(defn render-bullet  [css cand-bullet]
   (if (sequential? cand-bullet)
     (into [:ul {:style (if css {} {:font-size "0.8em"})
                 :class "jobim-ul"}]
-          (map (partial css render-bullet))
+          (map (partial render-bullet css))
           cand-bullet)
     [:li {:class "jobim-li"} cand-bullet]))
 
